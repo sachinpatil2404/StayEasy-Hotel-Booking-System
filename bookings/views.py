@@ -622,22 +622,35 @@ def send_booking_email(user, booking):
     </html>
     """
 
-    email = EmailMessage(
-        subject=subject,
-        body=html_content,
-        from_email=settings.DEFAULT_FROM_EMAIL,
-        to=[user.email]
-    )
-    email.content_subtype = "html"
-
-    # Attach PDF Receipt
+    # Generate PDF Invoice Attachment
+    pdf_bytes = None
     try:
         pdf_bytes = generate_pdf_invoice_buffer(user, booking)
-        email.attach(f"StayEasy_Invoice_{booking.id}.pdf", pdf_bytes, "application/pdf")
     except Exception as e:
         print("PDF ATTACHMENT EXCEPTION:", e)
 
+    # 1. Try Resend HTTP API first (bypasses Render Free SMTP port block)
+    if getattr(settings, 'RESEND_API_KEY', '') or os.getenv('RESEND_API_KEY', ''):
+        from .email_service import send_email_via_resend
+        attachments = []
+        if pdf_bytes:
+            attachments.append((f"StayEasy_Invoice_{booking.id}.pdf", pdf_bytes, "application/pdf"))
+        success = send_email_via_resend(subject, html_content, [user.email], attachments=attachments)
+        if success:
+            print(f"INVOICE & RECEIPT EMAIL SENT VIA RESEND HTTP API to {user.email}")
+            return True
+
+    # 2. Fallback to Django EmailMessage (SMTP)
     try:
+        email = EmailMessage(
+            subject=subject,
+            body=html_content,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            to=[user.email]
+        )
+        email.content_subtype = "html"
+        if pdf_bytes:
+            email.attach(f"StayEasy_Invoice_{booking.id}.pdf", pdf_bytes, "application/pdf")
         email.send(fail_silently=False)
         print(f"INVOICE & RECEIPT EMAIL SENT SUCCESSFULLY to {user.email}")
         return True
@@ -649,14 +662,25 @@ def send_user_email(user, subject, html_content):
     if not user.email:
         return
 
-    email = EmailMessage(
-        subject,
-        html_content,
-        settings.DEFAULT_FROM_EMAIL,
-        [user.email]
-    )
-    email.content_subtype = "html"
-    email.send()
+    # Try Resend HTTP API first
+    if getattr(settings, 'RESEND_API_KEY', '') or os.getenv('RESEND_API_KEY', ''):
+        from .email_service import send_email_via_resend
+        if send_email_via_resend(subject, html_content, [user.email]):
+            return
+
+    # Fallback to Django EmailMessage
+    try:
+        email = EmailMessage(
+            subject,
+            html_content,
+            settings.DEFAULT_FROM_EMAIL,
+            [user.email]
+        )
+        email.content_subtype = "html"
+        email.send()
+    except Exception as e:
+        print(f"send_user_email exception: {e}")
+
 
 def user_login(request):
     if request.method == "POST":

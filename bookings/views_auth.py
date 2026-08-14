@@ -40,15 +40,13 @@ def otp_login(request):
         request.session["otp_expiry"] = time.time() + 300  # expires in 5 min
 
         # Send OTP email
-        send_mail(
-            "Your Login OTP",
-            f"Your OTP for login is: {otp}",
-            settings.DEFAULT_FROM_EMAIL,
-            [email],
-            fail_silently=False,
-        )
+        from .email_service import send_otp_email
+        email_sent = send_otp_email(email, otp)
+        if email_sent:
+            messages.success(request, "OTP sent to your email.")
+        else:
+            messages.warning(request, f"OTP generated ({otp}), but sending the email failed. Please check mail service credentials.")
 
-        messages.success(request, "OTP sent to your email.")
         return redirect("otp_verify")
 
     return render(request, "bookings/otp_login.html")

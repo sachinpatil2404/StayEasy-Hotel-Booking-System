@@ -612,14 +612,15 @@
   #chat-send:hover { background: var(--primary-dark); }
 
   /* =====================================================
+  /* =====================================================
      SIDEBAR OVERLAY (mobile)
   ===================================================== */
   .sidebar-overlay {
     display: none;
-    position: fixed; inset: 0;
-    background: rgba(0,0,0,0.5);
-    backdrop-filter: blur(2px);
-    z-index: 1090;
+    position: fixed;
+    top: 68px; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.4);
+    z-index: 1150;
   }
   .sidebar-overlay.show { display: block; }
 
@@ -627,41 +628,62 @@
      RESPONSIVE BREAKPOINTS
   ===================================================== */
   @media (max-width: 1024px) {
+    #topNavbar {
+      padding: 0 16px;
+      justify-content: space-between;
+    }
     #sidebar {
       position: fixed;
-      top: 0; left: 0;
-      height: 100vh;
-      z-index: 1095;
+      top: 68px; left: 0;
+      height: calc(100vh - 68px);
+      width: 280px;
+      max-width: 85vw;
+      z-index: 1200;
       transform: translateX(-100%);
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      background: var(--sidebar-bg);
+      box-shadow: none;
     }
     #sidebar.show {
       transform: translateX(0);
       box-shadow: var(--shadow-lg);
     }
     #main { padding: 20px 16px; }
-    .nav-left { min-width: auto; border-right: none; }
+    .nav-left { min-width: auto; border-right: none; padding: 0; gap: 10px; }
     .nav-search-wrapper { display: none; }
+    .nav-right { padding-left: 0; margin-left: auto; gap: 6px; }
     .user-name, .user-role, .user-info { display: none; }
     .user-avatar-btn { padding: 5px; }
     .user-avatar-btn .caret { display: none; }
   }
 
   @media (max-width: 640px) {
-    #topNavbar { padding: 0 12px 0 0; }
-    .nav-left { padding: 0 12px; gap: 10px; }
-    .brand-link { font-size: 18px; }
+    #topNavbar { padding: 0 10px; height: 60px; }
+    #sidebar { top: 60px; height: calc(100vh - 60px); }
+    .sidebar-overlay { top: 60px; }
+    .nav-left { padding: 0; gap: 8px; }
+    .brand-link { font-size: 17px; gap: 6px; }
+    #sidebarToggleBtn { width: 34px; height: 34px; font-size: 16px; }
+    .nav-right { gap: 4px; margin-left: auto; }
+    .currency-select-nav { padding: 4px 6px !important; font-size: 12px !important; max-width: 75px; }
+    #themeToggle { padding: 6px; border-radius: 50%; width: 34px; height: 34px; justify-content: center; }
+    #themeToggle .theme-label { display: none; }
+    .nav-icon-btn { width: 34px; height: 34px; font-size: 15px; }
+    .user-avatar-btn { padding: 3px; border-radius: 50%; max-width: none; }
+    .user-avatar { width: 32px; height: 32px; }
+    .nav-divider { display: none; }
     #main { padding: 16px 12px; }
     footer.site-footer { padding: 32px 20px 18px; }
     .footer-inner { grid-template-columns: 1fr 1fr; gap: 22px; }
-    #themeToggle .theme-label { display: none; }
-    #themeToggle { padding: 6px 10px; }
     #chatbot-box { right: 10px; width: calc(100vw - 20px); }
     #chatbot-btn { right: 16px; bottom: 16px; width: 52px; height: 52px; font-size: 20px; }
   }
 
   @media (max-width: 480px) {
     .footer-inner { grid-template-columns: 1fr; }
-    .nav-divider { display: none; }
+    .nav-left { gap: 6px; }
+    .brand-link span, .brand-text { font-size: 16px; }
   }
   </style>
 </head>
@@ -726,7 +748,7 @@
       <button class="user-avatar-btn" id="userAvatarBtn" aria-label="User menu">
         <div class="user-avatar">
           {% if user.userprofile.profile_image %}
-            <img src="{{ user.userprofile.profile_image.url }}" alt="{{ user.username }}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">
+            <img src="{{ user.userprofile.profile_image.url }}" alt="{{ user.username }}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" onerror="this.onerror=null; this.src='/static/images/default_hotel.jpg';">
           {% else %}
             {{ user.username|first|upper }}
           {% endif %}
@@ -806,7 +828,7 @@
     <div class="sidebar-user">
       <div class="sidebar-user-avatar">
         {% if user.userprofile.profile_image %}
-          <img src="{{ user.userprofile.profile_image.url }}" alt="{{ user.username }}" style="width:100%;height:100%;object-fit:cover;border-radius:10px;">
+          <img src="{{ user.userprofile.profile_image.url }}" alt="{{ user.username }}" style="width:100%;height:100%;object-fit:cover;border-radius:10px;" onerror="this.onerror=null; this.src='/static/images/default_hotel.jpg';">
         {% else %}
           {{ user.username|first|upper }}
         {% endif %}
