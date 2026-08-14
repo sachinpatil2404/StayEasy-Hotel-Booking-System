@@ -1,5 +1,6 @@
 # hotel_book1/hotel_book1/settings.py
 from datetime import timedelta
+import dj_database_url
 """
 Django settings for hotel_book1 project.
 Replace SECRET_KEY with your own secret in production.
@@ -47,6 +48,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -80,17 +82,34 @@ TEMPLATES = [
 WSGI_APPLICATION = "hotel_book1.wsgi.application"
 ASGI_APPLICATION = "hotel_book1.asgi.application"
 
-# Database Configuration (fetched safely from environment variables)
-DATABASES = {
-    'default': {
-        'ENGINE': os.getenv('DB_ENGINE', 'django.db.backends.mysql'),
-        'NAME': os.getenv('DB_NAME'),
-        'USER': os.getenv('DB_USER'),
-        'PASSWORD': os.getenv('DB_PASSWORD'),
-        'HOST': os.getenv('DB_HOST'),
-        'PORT': os.getenv('DB_PORT'),
+
+# Database Configuration
+# Render uses DATABASE_URL (PostgreSQL).
+# Local development uses MySQL.
+
+DATABASE_URL = os.getenv("DATABASE_URL")
+
+if DATABASE_URL:
+    DATABASES = {
+        "default": dj_database_url.config(
+            default=DATABASE_URL,
+            conn_max_age=600,
+        )
     }
-}
+else:
+    DATABASES = {
+        "default": {
+            "ENGINE": os.getenv(
+                "DB_ENGINE",
+                "django.db.backends.mysql"
+            ),
+            "NAME": os.getenv("DB_NAME"),
+            "USER": os.getenv("DB_USER"),
+            "PASSWORD": os.getenv("DB_PASSWORD"),
+            "HOST": os.getenv("DB_HOST"),
+            "PORT": os.getenv("DB_PORT"),
+        }
+    }
 
 # Password validation (defaults)
 AUTH_PASSWORD_VALIDATORS = [
@@ -121,6 +140,7 @@ LANGUAGES = [
 STATIC_URL = "/static/"
 STATICFILES_DIRS = [BASE_DIR / "static"]
 STATIC_ROOT = BASE_DIR / "staticfiles"  # for collectstatic in production
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 # Media (if you add hotel images later)
 MEDIA_URL = "/media/"
