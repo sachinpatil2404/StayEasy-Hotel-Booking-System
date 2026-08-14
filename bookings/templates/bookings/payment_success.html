@@ -1,0 +1,136 @@
+{% extends "bookings/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Payment Success | StayEasy{% endblock %}
+
+{% block extra_styles %}
+<style>
+.success-card {
+  max-width: 480px;
+  margin: 30px auto;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 40px 32px;
+  text-align: center;
+  box-shadow: var(--shadow-md);
+}
+
+.checkmark-circle {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: #10b981;
+  color: white;
+  font-size: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 20px;
+  box-shadow: 0 8px 24px rgba(16,185,129,0.3);
+}
+
+.details-box {
+  text-align: left;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 18px;
+  margin: 24px 0;
+}
+
+.details-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 0;
+  font-size: 14px;
+  border-bottom: 1px dashed var(--border);
+}
+.details-row:last-child { border-bottom: none; }
+.details-row span:first-child { color: var(--text-muted); }
+.details-row span:last-child { font-weight: 700; color: var(--text); }
+
+.action-btns-row {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.btn-success-action {
+  flex: 1;
+  padding: 12px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none;
+  text-align: center;
+  transition: opacity var(--transition);
+  white-space: nowrap;
+}
+.btn-success-action.primary {
+  background: var(--primary-gradient);
+  color: white !important;
+}
+.btn-success-action.green {
+  background: #10b981;
+  color: white !important;
+}
+.btn-success-action:hover { opacity: 0.9; }
+
+@media(max-width: 500px) {
+  .action-btns-row { flex-direction: column; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="success-card">
+  <div class="checkmark-circle">
+    <i class="fa-solid fa-check"></i>
+  </div>
+
+  <h2 style="font-size: 26px; font-weight: 800; color: var(--text); margin-bottom: 6px;">
+    Payment Confirmed 🎉
+  </h2>
+  <p style="font-size: 14px; color: var(--text-muted); margin: 0;">
+    Your hotel booking has been successfully placed.
+  </p>
+
+  <div class="details-box">
+    <div class="details-row">
+      <span>Booking ID</span>
+      <span>#{{ booking.id }}</span>
+    </div>
+    <div class="details-row">
+      <span>Hotel</span>
+      <span>{{ booking.room.hotel.name }}</span>
+    </div>
+    <div class="details-row">
+      <span>Room Type</span>
+      <span>{{ booking.room.room_type }} (Room {{ booking.room.room_number }})</span>
+    </div>
+    <div class="details-row">
+      <span>Check-in</span>
+      <span>{{ booking.check_in }}</span>
+    </div>
+    <div class="details-row">
+      <span>Check-out</span>
+      <span>{{ booking.check_out }}</span>
+    </div>
+    <div class="details-row">
+      <span>Total Paid</span>
+      <span style="color:var(--primary);">₹{{ booking.total_price }}</span>
+    </div>
+  </div>
+
+  <div class="action-btns-row">
+    <a href="{% url 'my_bookings' %}" class="btn-success-action primary">
+      <i class="fa-solid fa-calendar-check"></i> My Bookings
+    </a>
+    <a href="{% url 'download_invoice' booking.id %}" class="btn-success-action green">
+      <i class="fa-solid fa-file-pdf"></i> Download Receipt
+    </a>
+  </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,146 @@
+{% extends "bookings/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Edit Hotel | StayEasy Admin{% endblock %}
+
+{% block extra_styles %}
+<style>
+.form-card {
+  max-width: 720px;
+  margin: 0 auto;
+  background: var(--surface);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+  padding: 36px 40px;
+}
+.form-title { font-size:24px; font-weight:800; color:var(--text); margin-bottom:6px; }
+.form-subtitle { color:var(--text-muted); font-size:14px; margin-bottom:28px; }
+
+.form-group { margin-bottom:20px; }
+.form-group label {
+  display:block;
+  font-size:14px;
+  font-weight:600;
+  color:var(--text);
+  margin-bottom:7px;
+}
+.form-group label .req { color:#ef4444; margin-left:2px; }
+
+.form-control {
+  width:100%;
+  padding:11px 14px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius:10px;
+  color:var(--text);
+  font-size:14px;
+  font-family: inherit;
+  outline:none;
+  transition: all var(--transition);
+}
+.form-control:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(78,99,255,0.12);
+  background: var(--surface);
+}
+.form-control::placeholder { color: var(--text-muted); }
+textarea.form-control { min-height:110px; resize:vertical; }
+
+.hint { font-size:12px; color:var(--text-muted); margin-top:5px; }
+
+.current-image-preview {
+  margin-top:12px;
+  display:flex;
+  align-items:center;
+  gap:14px;
+}
+.current-image-preview img {
+  width:100px; height:70px;
+  object-fit:cover;
+  border-radius:8px;
+  border:1px solid var(--border);
+}
+.current-image-preview span { font-size:13px; color:var(--text-muted); }
+
+.form-actions { display:flex; gap:12px; margin-top:28px; }
+.btn-cancel {
+  flex:1; padding:12px;
+  border-radius:10px;
+  border:1px solid var(--border);
+  background:var(--surface2);
+  color:var(--text);
+  font-size:14px; font-weight:600;
+  text-decoration:none;
+  text-align:center;
+  transition:all var(--transition);
+}
+.btn-cancel:hover { background:var(--border); color:var(--text); }
+.btn-save {
+  flex:2; padding:12px;
+  border-radius:10px;
+  border:none;
+  background:var(--primary-gradient);
+  color:white;
+  font-size:14px; font-weight:700;
+  cursor:pointer;
+  transition:opacity var(--transition);
+}
+.btn-save:hover { opacity:0.9; }
+
+@media (max-width:600px) {
+  .form-card { padding:24px 18px; }
+  .form-actions { flex-direction:column; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="form-card">
+  <h1 class="form-title"><i class="fa-solid fa-pen-to-square" style="color:var(--primary);margin-right:8px;"></i>Edit Hotel</h1>
+  <p class="form-subtitle">Update the hotel details below.</p>
+
+  <form method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
+
+    <div class="form-group">
+      <label for="name">Hotel Name <span class="req">*</span></label>
+      <input type="text" id="name" name="name" class="form-control" value="{{ hotel.name }}" required>
+    </div>
+
+    <div class="form-group">
+      <label for="address">Address <span class="req">*</span></label>
+      <input type="text" id="address" name="address" class="form-control" value="{{ hotel.address }}" placeholder="Enter hotel address" required>
+    </div>
+
+    <div class="form-group">
+      <label for="city">City <span class="req">*</span></label>
+      <input type="text" id="city" name="city" class="form-control" value="{{ hotel.city }}" placeholder="Enter city" required>
+    </div>
+
+    <div class="form-group">
+      <label for="description">Description</label>
+      <textarea id="description" name="description" class="form-control" placeholder="Enter hotel description...">{{ hotel.description }}</textarea>
+    </div>
+
+    <div class="form-group">
+      <label for="image">Hotel Image</label>
+      <input type="file" id="image" name="image" accept="image/*" class="form-control">
+      <p class="hint">Upload a new image only if you want to replace the current one.</p>
+      {% if hotel.image %}
+      <div class="current-image-preview">
+        <img src="{{ hotel.image.url }}" alt="{{ hotel.name }}">
+        <span>Current image</span>
+      </div>
+      {% endif %}
+    </div>
+
+    <div class="form-actions">
+      <a href="{% url 'admin_hotels' %}" class="btn-cancel">← Cancel</a>
+      <button type="submit" class="btn-save">✓ Save Changes</button>
+    </div>
+  </form>
+</div>
+
+{% endblock %}

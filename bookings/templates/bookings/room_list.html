@@ -1,0 +1,16 @@
+<div class="room-card">
+
+    <!-- IMAGE SLIDESHOW -->
+    <div class="room-slider" data-room="{{ room.id }}">
+        {% if room.image %}
+    <img src="{{ room.image.url }}" style="width:100%; height:200px; object-fit:cover;">
+{% else %}
+    <p>No image available</p>
+{% endif %}
+    </div>
+
+    <h3>{{ room.room_type }}</h3>
+    <p>Capacity: {{ room.capacity }} people</p>
+
+    <a href="{% url 'book_room' room.id %}" class="btn btn-success">Book Room</a>
+</div>

@@ -1,0 +1,228 @@
+{% extends "bookings/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Edit Room | StayEasy Admin{% endblock %}
+
+{% block extra_styles %}
+<style>
+.form-card {
+  max-width: 720px;
+  margin: 0 auto;
+  background: var(--surface);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+  padding: 36px 40px;
+}
+.form-title { font-size:24px; font-weight:800; color:var(--text); margin-bottom:6px; }
+.form-subtitle { color:var(--text-muted); font-size:14px; margin-bottom:28px; }
+
+.form-grid { display:grid; grid-template-columns:1fr 1fr; gap:18px; }
+@media(max-width:600px){ .form-grid{ grid-template-columns:1fr; } }
+
+.form-group { margin-bottom:20px; }
+.form-group label {
+  display:block;
+  font-size:14px;
+  font-weight:600;
+  color:var(--text);
+  margin-bottom:7px;
+}
+.form-group label .req { color:#ef4444; margin-left:2px; }
+
+.form-control {
+  width:100%;
+  padding:11px 14px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius:10px;
+  color:var(--text);
+  font-size:14px;
+  font-family: inherit;
+  outline:none;
+  transition: all var(--transition);
+}
+.form-control:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(78,99,255,0.12);
+  background: var(--surface);
+}
+.form-control::placeholder { color: var(--text-muted); }
+textarea.form-control { min-height:100px; resize:vertical; }
+select.form-control { cursor:pointer; }
+
+.image-row { display:flex; align-items:center; gap:10px; margin-bottom:10px; }
+.image-row input { flex:1; }
+.btn-remove-img {
+  padding:7px 12px;
+  border:1px solid #ef4444;
+  border-radius:8px;
+  background:rgba(239,68,68,0.08);
+  color:#ef4444;
+  font-size:12px; font-weight:600;
+  cursor:pointer;
+}
+.btn-add-img {
+  display:inline-flex; align-items:center; gap:6px;
+  padding:8px 16px;
+  border:1px dashed var(--border);
+  border-radius:8px;
+  background:transparent;
+  color:var(--text-muted);
+  font-size:13px; font-weight:600;
+  cursor:pointer;
+  transition:all var(--transition);
+}
+.btn-add-img:hover { border-color:var(--primary); color:var(--primary); }
+
+.form-actions { display:flex; gap:12px; margin-top:28px; }
+.btn-cancel {
+  flex:1; padding:12px;
+  border-radius:10px;
+  border:1px solid var(--border);
+  background:var(--surface2);
+  color:var(--text);
+  font-size:14px; font-weight:600;
+  text-decoration:none;
+  text-align:center;
+  transition:all var(--transition);
+}
+.btn-cancel:hover { background:var(--border); color:var(--text); }
+.btn-save {
+  flex:2; padding:12px;
+  border-radius:10px;
+  border:none;
+  background:var(--primary-gradient);
+  color:white;
+  font-size:14px; font-weight:700;
+  cursor:pointer;
+  transition:opacity var(--transition);
+}
+.btn-save:hover { opacity:0.9; }
+
+@media (max-width:600px) {
+  .form-card { padding:24px 18px; }
+  .form-actions { flex-direction:column; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="form-card">
+  <h1 class="form-title"><i class="fa-solid fa-pen-to-square" style="color:var(--primary);margin-right:8px;"></i>Edit Room</h1>
+  <p class="form-subtitle">Update room information & photos below.</p>
+
+  <form method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
+
+    <div class="form-group">
+      <label>Hotel <span class="req">*</span></label>
+      <select name="hotel" class="form-control" required>
+        {% for hotel in hotels %}
+        <option value="{{ hotel.id }}" {% if hotel.id == room.hotel.id %}selected{% endif %}>{{ hotel.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Room Number <span class="req">*</span></label>
+        <input type="text" name="room_number" class="form-control" value="{{ room.room_number }}" required>
+      </div>
+      <div class="form-group">
+        <label>Room Type <span class="req">*</span></label>
+        <select name="room_type" class="form-control" required>
+          <option value="Single" {% if room.room_type == "Single" %}selected{% endif %}>Single</option>
+          <option value="Double" {% if room.room_type == "Double" %}selected{% endif %}>Double</option>
+          <option value="Deluxe" {% if room.room_type == "Deluxe" %}selected{% endif %}>Deluxe</option>
+          <option value="Suite"  {% if room.room_type == "Suite"  %}selected{% endif %}>Suite</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Capacity <span class="req">*</span></label>
+        <input type="number" name="capacity" class="form-control" value="{{ room.capacity }}" min="1" required>
+      </div>
+      <div class="form-group">
+        <label>Price Per Night (₹) <span class="req">*</span></label>
+        <input type="number" name="price_per_night" class="form-control" value="{{ room.price_per_night }}" min="0" step="0.01" required>
+      </div>
+    </div>
+
+    <!-- AMENITIES CHECKBOXES -->
+    <div class="form-group">
+      <label>Room Amenities & Features</label>
+      <div style="display:flex; gap:20px; flex-wrap:wrap; background:var(--surface2); padding:16px; border-radius:12px; border:1px solid var(--border);">
+        <label style="display:inline-flex; align-items:center; gap:8px; cursor:pointer; font-weight:600; font-size:13px; color:var(--text);">
+          <input type="checkbox" name="is_ac" {% if room.is_ac %}checked{% endif %} style="width:18px; height:18px; accent-color:var(--primary);">
+          <span>❄️ Air Conditioned (AC)</span>
+        </label>
+
+        <label style="display:inline-flex; align-items:center; gap:8px; cursor:pointer; font-weight:600; font-size:13px; color:var(--text);">
+          <input type="checkbox" name="has_wifi" {% if room.has_wifi %}checked{% endif %} style="width:18px; height:18px; accent-color:var(--primary);">
+          <span>📶 Free High-Speed WiFi</span>
+        </label>
+
+        <label style="display:inline-flex; align-items:center; gap:8px; cursor:pointer; font-weight:600; font-size:13px; color:var(--text);">
+          <input type="checkbox" name="has_breakfast" {% if room.has_breakfast %}checked{% endif %} style="width:18px; height:18px; accent-color:var(--primary);">
+          <span>🍳 Complimentary Breakfast</span>
+        </label>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Description</label>
+      <textarea name="description" class="form-control">{{ room.description }}</textarea>
+    </div>
+
+    <!-- EXISTING ROOM IMAGES GALLERY -->
+    {% if room.images.exists %}
+    <div class="form-group">
+      <label>Existing Room Photos (Check box to remove photo)</label>
+      <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(130px, 1fr)); gap:12px; background:var(--surface2); padding:14px; border-radius:12px; border:1px solid var(--border);">
+        {% for img in room.images.all %}
+        <div style="position:relative; border:1px solid var(--border); border-radius:10px; overflow:hidden; background:var(--surface);">
+          <img src="{{ img.image.url }}" style="width:100%; height:95px; object-fit:cover; display:block;">
+          <label style="display:flex; align-items:center; justify-content:center; gap:5px; padding:6px; font-size:12px; font-weight:600; color:#ef4444; cursor:pointer; background:rgba(239,68,68,0.08); margin:0;">
+            <input type="checkbox" name="delete_images" value="{{ img.id }}" style="accent-color:#ef4444; width:15px; height:15px;">
+            <span>Delete</span>
+          </label>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- UPLOAD NEW ROOM IMAGES -->
+    <div class="form-group">
+      <label>Upload New Room Photos</label>
+      <div id="image-container">
+        <div class="image-row">
+          <input type="file" name="images" accept="image/*" class="form-control">
+          <button type="button" class="btn-remove-img" onclick="removeImage(this)" style="display:none;">Remove</button>
+        </div>
+      </div>
+      <button type="button" class="btn-add-img" onclick="addImageInput()" style="margin-top:8px;">
+        <i class="fa-solid fa-plus"></i> Add Another Photo
+      </button>
+    </div>
+
+    <div class="form-actions">
+      <a href="{% url 'admin_rooms' %}" class="btn-cancel">← Cancel</a>
+      <button type="submit" class="btn-save">✓ Save Changes</button>
+    </div>
+  </form>
+</div>
+
+<script>
+function addImageInput() {
+  const container = document.getElementById('image-container');
+  const row = document.createElement('div');
+  row.className = 'image-row';
+  row.innerHTML = `<input type="file" name="images" accept="image/*" class="form-control"><button type="button" class="btn-remove-img" onclick="removeImage(this)">Remove</button>`;
+  container.appendChild(row);
+}
+function removeImage(btn) { btn.parentElement.remove(); }
+</script>
+
+{% endblock %}

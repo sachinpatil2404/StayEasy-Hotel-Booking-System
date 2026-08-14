@@ -1,0 +1,431 @@
+{% extends "bookings/base_dashboard.html" %}
+{% load static %}
+{% load currency_tags %}
+
+{% block title %}Razorpay Secure Checkout (Test Mode) | StayEasy{% endblock %}
+
+{% block extra_styles %}
+<style>
+:root {
+  --rzp-blue: #0c2556;
+  --rzp-accent: #0c73ec;
+  --rzp-light-blue: #f0f6ff;
+  --rzp-border: #dbe4f0;
+}
+
+.rzp-container {
+  max-width: 520px;
+  margin: 30px auto;
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(12, 37, 86, 0.12);
+  border: 1px solid #e2e8f0;
+  overflow: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+
+/* Test Mode Banner */
+.rzp-test-banner {
+  background: #fffbeb;
+  color: #b45309;
+  border-bottom: 1px solid #fef3c7;
+  padding: 8px 16px;
+  font-size: 12px;
+  font-weight: 700;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  letter-spacing: 0.3px;
+}
+
+/* Header */
+.rzp-header {
+  background: var(--rzp-blue);
+  color: #ffffff;
+  padding: 24px;
+  position: relative;
+}
+
+.rzp-brand {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.rzp-logo {
+  font-size: 20px;
+  font-weight: 800;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.rzp-logo span {
+  color: #38bdf8;
+}
+
+.rzp-badge {
+  background: rgba(255, 255, 255, 0.15);
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.rzp-order-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+}
+
+.rzp-order-info .details {
+  font-size: 13px;
+  color: #94a3b8;
+}
+
+.rzp-order-info .amount {
+  font-size: 26px;
+  font-weight: 800;
+  color: #ffffff;
+}
+
+/* Body & Payment Options */
+.rzp-body {
+  padding: 24px;
+  background: #ffffff;
+}
+
+.rzp-section-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 14px;
+}
+
+/* Method Selector Tabs */
+.rzp-methods {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.rzp-method-btn {
+  border: 1.5px solid var(--rzp-border);
+  background: #ffffff;
+  border-radius: 10px;
+  padding: 12px 8px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: #334155;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.rzp-method-btn i {
+  font-size: 18px;
+  display: block;
+  margin-bottom: 6px;
+  color: #64748b;
+}
+
+.rzp-method-btn.active {
+  border-color: var(--rzp-accent);
+  background: var(--rzp-light-blue);
+  color: var(--rzp-accent);
+}
+
+.rzp-method-btn.active i {
+  color: var(--rzp-accent);
+}
+
+/* Payment Form Fields */
+.rzp-tab-content {
+  display: none;
+}
+.rzp-tab-content.active {
+  display: block;
+}
+
+.rzp-input-group {
+  margin-bottom: 14px;
+}
+
+.rzp-input-group label {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  color: #334155;
+  margin-bottom: 5px;
+}
+
+.rzp-input-group input, .rzp-input-group select {
+  width: 100%;
+  padding: 11px 14px;
+  border: 1px solid var(--rzp-border);
+  border-radius: 8px;
+  font-size: 14px;
+  outline: none;
+  background: #f8fafc;
+  color: #0f172a;
+}
+
+.rzp-input-group input:focus, .rzp-input-group select:focus {
+  border-color: var(--rzp-accent);
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(12, 115, 236, 0.12);
+}
+
+/* Quick UPI Chips */
+.upi-apps {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.upi-chip {
+  flex: 1;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 8px;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  background: #f8fafc;
+}
+.upi-chip:hover { border-color: var(--rzp-accent); background: #ffffff; }
+
+/* Action Button */
+.btn-rzp-pay {
+  width: 100%;
+  padding: 14px;
+  background: var(--rzp-accent);
+  color: #ffffff;
+  border: none;
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 20px;
+  box-shadow: 0 4px 12px rgba(12, 115, 236, 0.25);
+}
+
+.btn-rzp-pay:hover {
+  background: #0265d6;
+}
+
+/* Footer & Branding */
+.rzp-footer {
+  padding: 14px 24px;
+  background: #f8fafc;
+  border-top: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  color: #64748b;
+}
+
+.rzp-secured-by {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 700;
+  color: #334155;
+}
+
+/* Processing Overlay */
+.rzp-overlay {
+  display: none;
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(255, 255, 255, 0.96);
+  z-index: 10;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 20px;
+}
+
+.rzp-spinner {
+  width: 48px;
+  height: 48px;
+  border: 4px solid #e2e8f0;
+  border-top: 4px solid var(--rzp-accent);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin-bottom: 16px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div style="position: relative;">
+  <div class="rzp-container">
+    
+    <!-- Test Mode Banner -->
+    <div class="rzp-test-banner">
+      <i class="fa-solid fa-flask"></i> RAZORPAY TEST MODE • Developer Simulation Active
+    </div>
+
+    <!-- Header -->
+    <div class="rzp-header">
+      <div class="rzp-brand">
+        <div class="rzp-logo">
+          <i class="fa-solid fa-bolt"></i> Razorpay<span>Checkout</span>
+        </div>
+        <div class="rzp-badge">
+          <i class="fa-solid fa-shield-halved"></i> 256-bit SSL
+        </div>
+      </div>
+      <div class="rzp-order-info">
+        <div class="details">
+          <div style="font-weight:700; color:#ffffff;">StayEasy Hotel Booking</div>
+          <div>Ref: #INV-{{ booking.id }} • {{ booking.room.hotel.name }}</div>
+        </div>
+        <div class="amount">
+          {{ booking.total_price|currency:request }}
+        </div>
+      </div>
+    </div>
+
+    <!-- Body -->
+    <div class="rzp-body" style="position:relative;">
+      
+      <div class="rzp-section-title">Select Payment Method</div>
+
+      <!-- Methods Tabs -->
+      <div class="rzp-methods">
+        <div class="rzp-method-btn active" onclick="switchTab('upi', this)">
+          <i class="fa-solid fa-mobile-screen-button"></i> UPI / QR
+        </div>
+        <div class="rzp-method-btn" onclick="switchTab('card', this)">
+          <i class="fa-regular fa-credit-card"></i> Card
+        </div>
+        <div class="rzp-method-btn" onclick="switchTab('netbanking', this)">
+          <i class="fa-solid fa-building-columns"></i> Net Banking
+        </div>
+      </div>
+
+      <!-- Tab 1: UPI -->
+      <div id="tab-upi" class="rzp-tab-content active">
+        <div class="upi-apps">
+          <div class="upi-chip" onclick="setVpa('success@gpay')"><i class="fa-brands fa-google-pay" style="color:#4285F4;"></i> GPay</div>
+          <div class="upi-chip" onclick="setVpa('success@phonepe')"><i class="fa-solid fa-mobile" style="color:#5f259f;"></i> PhonePe</div>
+          <div class="upi-chip" onclick="setVpa('success@paytm')"><i class="fa-solid fa-wallet" style="color:#00baf2;"></i> Paytm</div>
+        </div>
+        <div class="rzp-input-group">
+          <label>Enter Virtual Payment Address (VPA / UPI ID)</label>
+          <input type="text" id="vpa-input" value="success@razorpay" placeholder="username@upi">
+        </div>
+        <div style="font-size:11px; color:#64748b;">
+          <i class="fa-solid fa-circle-info"></i> Developer Test Mode: Any VPA will automatically succeed.
+        </div>
+      </div>
+
+      <!-- Tab 2: Card -->
+      <div id="tab-card" class="rzp-tab-content">
+        <div class="rzp-input-group">
+          <label>Card Number</label>
+          <input type="text" value="4532 •••• •••• 8892" placeholder="4532 0000 0000 0000">
+        </div>
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
+          <div class="rzp-input-group">
+            <label>Expiry Date</label>
+            <input type="text" value="12 / 28" placeholder="MM / YY">
+          </div>
+          <div class="rzp-input-group">
+            <label>CVV</label>
+            <input type="password" value="888" placeholder="•••">
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab 3: Net Banking -->
+      <div id="tab-netbanking" class="rzp-tab-content">
+        <div class="rzp-input-group">
+          <label>Select Bank</label>
+          <select>
+            <option>State Bank of India (SBI)</option>
+            <option>HDFC Bank</option>
+            <option>ICICI Bank</option>
+            <option>Axis Bank</option>
+            <option>Kotak Mahindra Bank</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Submit Button -->
+      <button type="button" class="btn-rzp-pay" onclick="processRazorpayTestPayment()">
+        <i class="fa-solid fa-lock"></i> Pay {{ booking.total_price|currency:request }} via Razorpay
+      </button>
+
+      <!-- Processing Overlay -->
+      <div id="rzp-overlay" class="rzp-overlay">
+        <div class="rzp-spinner"></div>
+        <h4 style="font-size:18px; font-weight:800; color:#0f172a; margin-bottom:6px;">Processing Payment</h4>
+        <p style="font-size:13px; color:#64748b; margin-bottom:12px;">Authenticating with Razorpay Gateway...</p>
+        <div style="font-size:11px; background:#e0f2fe; color:#0369a1; padding:6px 14px; border-radius:14px; font-weight:600;">
+          <i class="fa-solid fa-envelope"></i> Generating Invoice & PDF Receipt Email
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Footer -->
+    <div class="rzp-footer">
+      <div>Order #INV-{{ booking.id }}</div>
+      <div class="rzp-secured-by">
+        Secured by <i class="fa-solid fa-bolt" style="color:var(--rzp-accent);"></i> <strong>Razorpay</strong>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+function switchTab(tabName, btn) {
+  document.querySelectorAll('.rzp-method-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.rzp-tab-content').forEach(c => c.classList.remove('active'));
+  
+  btn.classList.add('active');
+  document.getElementById('tab-' + tabName).classList.add('active');
+}
+
+function setVpa(vpa) {
+  document.getElementById('vpa-input').value = vpa;
+}
+
+function processRazorpayTestPayment() {
+  const overlay = document.getElementById('rzp-overlay');
+  overlay.style.display = 'flex';
+  
+  setTimeout(() => {
+    window.location.href = "{% url 'payment_success' booking.id %}";
+  }, 1600);
+}
+</script>
+
+{% endblock %}

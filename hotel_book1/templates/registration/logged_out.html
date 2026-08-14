@@ -1,0 +1,6 @@
+<!-- templates/registration/logged_out.html -->
+{% extends "bookings/base.html" %}
+{% block content %}
+  <h2>You have been logged out</h2>
+  <p><a href="{% url 'login' %}">Login again</a></p>
+{% endblock %}

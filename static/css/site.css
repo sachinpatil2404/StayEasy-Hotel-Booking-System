@@ -1,0 +1,73 @@
+/* static/css/site.css */
+body {
+  background: linear-gradient(180deg, #f7fbff 0%, #ffffff 100%);
+  color: #222;
+}
+.card {
+  border-radius: 12px;
+}
+.card-img-top {
+  height: 200px;
+  object-fit: cover;
+}
+.navbar-brand {
+  font-weight: 700;
+  letter-spacing: 0.3px;
+}
+body {
+  background: #f8f9fa;
+}
+
+.card {
+  border-radius: 15px;
+  overflow: hidden;
+  transition: transform 0.2s;
+}
+
+.card:hover {
+  transform: scale(1.03);
+}
+
+.navbar-brand {
+  font-size: 1.4rem;
+}
+
+.btn-primary {
+  border-radius: 10px;
+}
+input {
+  padding: 10px !important;
+  border-radius: 8px !important;
+  border: 1px solid #ccc !important;
+}
+/* Chat Button */
+#chatbot-btn {
+    position: fixed;
+    bottom: 25px;
+    right: 25px;
+    background: #6c5ce7;
+    padding: 18px;
+    color: white;
+    font-size: 26px;
+    border-radius: 50%;
+    cursor: pointer;
+    z-index: 9999;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+}
+
+/* FIX: Chatbot Icon */
+
+/* FIX: Chat Window */
+#chat-window {
+    position: fixed !important;
+    bottom: 100px;
+    right: 25px;
+    width: 320px;
+    height: 420px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 25px rgba(0,0,0,0.4);
+    display: none;
+    flex-direction: column;
+    z-index: 99999999 !important;
+}

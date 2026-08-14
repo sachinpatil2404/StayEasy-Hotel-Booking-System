@@ -1,0 +1,497 @@
+{% extends "bookings/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}My Dashboard | StayEasy{% endblock %}
+
+{% block extra_styles %}
+<style>
+/* =====================================================
+   DASHBOARD HERO PROFILE HEADER
+===================================================== */
+.dashboard-hero {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 24px;
+}
+
+.hero-cover {
+  height: 110px;
+  background: linear-gradient(135deg, #4e63ff 0%, #7b5cff 50%, #00d4ff 100%);
+  position: relative;
+}
+
+.hero-body {
+  padding: 16px 28px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.hero-user-info {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex: 1;
+  min-width: 280px;
+}
+
+.avatar-wrapper {
+  position: relative;
+  width: 90px;
+  height: 90px;
+  margin-top: -55px; /* Avatar cleanly pops out of cover banner */
+  flex-shrink: 0;
+  z-index: 2;
+}
+
+.avatar-img {
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 4px solid var(--surface);
+  box-shadow: var(--shadow-md);
+  background: var(--surface);
+}
+
+.avatar-placeholder {
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  background: var(--primary-gradient);
+  color: white;
+  font-size: 36px;
+  font-weight: 800;
+  display: flex; align-items: center; justify-content: center;
+  border: 4px solid var(--surface);
+  box-shadow: var(--shadow-md);
+}
+
+.avatar-edit-btn {
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--primary);
+  color: white;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px;
+  text-decoration: none;
+  border: 2px solid var(--surface);
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--transition);
+}
+.avatar-edit-btn:hover { transform: scale(1.1); color: white; }
+
+.user-text-details {
+  min-width: 0; /* Prevents flex children overflow */
+  flex: 1;
+  padding-top: 4px;
+}
+
+.user-display-name {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--text);
+  margin: 0 0 4px 0;
+  line-height: 1.25;
+}
+
+.user-email-badge {
+  font-size: 13px;
+  color: var(--text-muted);
+  word-break: break-all;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+}
+
+.hero-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.btn-hero-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 16px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  color: var(--text);
+  transition: all var(--transition);
+  white-space: nowrap;
+}
+.btn-hero-action:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+  background: var(--surface);
+}
+.btn-hero-action.primary {
+  background: var(--primary-gradient);
+  color: white;
+  border: none;
+}
+.btn-hero-action.primary:hover { opacity: 0.9; color: white; }
+
+/* =====================================================
+   KPI STAT CARDS
+===================================================== */
+.kpis-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+  margin-bottom: 24px;
+}
+
+.kpi-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 20px;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  transition: transform var(--transition), box-shadow var(--transition);
+}
+.kpi-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-md);
+}
+
+.kpi-icon {
+  width: 50px;
+  height: 50px;
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px;
+  flex-shrink: 0;
+}
+.kpi-card.purple .kpi-icon { background: rgba(123,92,255,0.12); color: #7b5cff; }
+.kpi-card.blue   .kpi-icon { background: rgba(78,99,255,0.12);  color: #4e63ff; }
+.kpi-card.green  .kpi-icon { background: rgba(16,185,129,0.12); color: #10b981; }
+
+.kpi-info {}
+.kpi-val { font-size: 26px; font-weight: 800; color: var(--text); line-height: 1.1; }
+.kpi-lbl { font-size: 13px; color: var(--text-muted); margin-top: 3px; font-weight: 500; }
+
+/* =====================================================
+   GRID CONTENT LAYOUT
+===================================================== */
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 24px;
+  align-items: start;
+}
+
+.content-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 22px;
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 24px;
+}
+
+.card-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+.card-title-row h5 {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* =====================================================
+   RECENT BOOKINGS TABLE / LIST
+===================================================== */
+.recent-booking-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+  gap: 12px;
+}
+.recent-booking-item:last-child { border-bottom: none; }
+
+.rb-hotel { font-weight: 700; color: var(--text); font-size: 14px; }
+.rb-meta  { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+.rb-price { font-weight: 700; color: var(--primary); font-size: 14px; text-align: right; }
+.rb-dates { font-size: 12px; color: var(--text-muted); }
+
+/* =====================================================
+   HOTELS BOOKED SIDEBAR CARDS
+===================================================== */
+.booked-hotel-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px;
+  border-radius: 10px;
+  background: var(--surface2);
+  margin-bottom: 10px;
+  transition: background var(--transition);
+}
+.booked-hotel-item:hover { background: var(--border); }
+
+.bh-icon {
+  width: 40px; height: 40px;
+  border-radius: 10px;
+  background: var(--primary-gradient);
+  color: white;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; flex-shrink: 0;
+}
+
+.bh-details { flex: 1; min-width: 0; }
+.bh-name { font-size: 13px; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bh-city { font-size: 12px; color: var(--text-muted); }
+
+/* =====================================================
+   RESPONSIVE MEDIA QUERIES
+===================================================== */
+@media (max-width: 991px) {
+  .dashboard-grid { grid-template-columns: 1fr; }
+  .kpis-grid { grid-template-columns: repeat(3, 1fr); }
+}
+
+@media (max-width: 640px) {
+  .kpis-grid { grid-template-columns: 1fr; }
+  .hero-body { flex-direction: column; align-items: flex-start; gap: 14px; }
+  .hero-user-info { flex-direction: column; align-items: flex-start; gap: 10px; width: 100%; }
+  .avatar-wrapper { margin-top: -45px; }
+  .hero-actions { width: 100%; justify-content: flex-start; }
+  .btn-hero-action { flex: 1; justify-content: center; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- HERO PROFILE HEADER -->
+<div class="dashboard-hero">
+  <div class="hero-cover"></div>
+  <div class="hero-body">
+    <div class="hero-user-info">
+      <div class="avatar-wrapper">
+        {% if user.userprofile.profile_image %}
+          <img src="{{ user.userprofile.profile_image.url }}" alt="{{ user.username }}" class="avatar-img">
+        {% else %}
+          <div class="avatar-placeholder">
+            {{ user.username|first|upper }}
+          </div>
+        {% endif %}
+        <a href="{% url 'upload_profile' %}" class="avatar-edit-btn" title="Change Photo">
+          <i class="fa-solid fa-camera"></i>
+        </a>
+      </div>
+
+      <div class="user-text-details">
+        <h1 class="user-display-name">
+          Welcome back, {{ user.get_full_name|default:user.username }} 👋
+        </h1>
+        <div class="user-email-badge">
+          <i class="fa-regular fa-envelope"></i>
+          <span>{{ user.email|default:"No email provided" }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="hero-actions">
+      <a href="{% url 'upload_profile' %}" class="btn-hero-action">
+        <i class="fa-solid fa-user-pen"></i> Edit Profile
+      </a>
+      <a href="{% url 'my_bookings' %}" class="btn-hero-action primary">
+        <i class="fa-solid fa-calendar-check"></i> My Bookings
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- KPI STATS BAR -->
+<div class="kpis-grid">
+  <div class="kpi-card purple">
+    <div class="kpi-icon"><i class="fa-solid fa-bookmark"></i></div>
+    <div class="kpi-info">
+      <div class="kpi-val">{{ total_bookings }}</div>
+      <div class="kpi-lbl">Total Bookings</div>
+    </div>
+  </div>
+
+  <div class="kpi-card blue">
+    <div class="kpi-icon"><i class="fa-solid fa-plane-departure"></i></div>
+    <div class="kpi-info">
+      <div class="kpi-val">{{ upcoming_bookings }}</div>
+      <div class="kpi-lbl">Upcoming Stays</div>
+    </div>
+  </div>
+
+  <div class="kpi-card green">
+    <div class="kpi-icon"><i class="fa-solid fa-indian-rupee-sign"></i></div>
+    <div class="kpi-info">
+      <div class="kpi-val">₹{{ total_spend|floatformat:2 }}</div>
+      <div class="kpi-lbl">Total Spent</div>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN DASHBOARD GRID -->
+<div class="dashboard-grid">
+
+  <!-- LEFT COLUMN -->
+  <div>
+    <!-- ANALYTICS CHART -->
+    <div class="content-card">
+      <div class="card-title-row">
+        <h5><i class="fa-solid fa-chart-line" style="color:var(--primary);"></i> Booking Trends</h5>
+        <span style="font-size:12px; color:var(--text-muted);">Last 14 Days</span>
+      </div>
+      <div style="position:relative; width:100%; height:200px;">
+        <canvas id="bookingsChart"></canvas>
+      </div>
+    </div>
+
+    <!-- RECENT ACTIVITY TABLE -->
+    <div class="content-card">
+      <div class="card-title-row">
+        <h5><i class="fa-solid fa-clock-rotate-left" style="color:var(--primary);"></i> Recent Bookings</h5>
+        <a href="{% url 'my_bookings' %}" style="font-size:13px; color:var(--primary); text-decoration:none; font-weight:600;">View All →</a>
+      </div>
+
+      <div>
+        {% for b in recent_bookings %}
+        <div class="recent-booking-item">
+          <div>
+            <div class="rb-hotel">#{{ b.id }} — {{ b.room.hotel.name }}</div>
+            <div class="rb-meta">{{ b.room.room_number }} ({{ b.room.room_type }})</div>
+          </div>
+          <div style="text-align:right;">
+            <div class="rb-price">₹{{ b.total_price }}</div>
+            <div class="rb-dates">{{ b.check_in|date:"M d" }} → {{ b.check_out|date:"M d, Y" }}</div>
+          </div>
+        </div>
+        {% empty %}
+        <div style="text-align:center; padding:30px; color:var(--text-muted); font-size:14px;">
+          <i class="fa-solid fa-calendar-xmark" style="font-size:32px; display:block; margin-bottom:8px; color:var(--border);"></i>
+          No bookings yet. <a href="{% url 'home' %}" style="color:var(--primary); font-weight:600;">Explore hotels →</a>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT COLUMN -->
+  <div>
+    <!-- HOTELS BOOKED LIST -->
+    <div class="content-card">
+      <div class="card-title-row">
+        <h5><i class="fa-solid fa-hotel" style="color:var(--primary);"></i> Booked Hotels</h5>
+      </div>
+
+      <div>
+        {% for h in hotels_booked %}
+        <div class="booked-hotel-item">
+          <div class="bh-icon"><i class="fa-solid fa-building"></i></div>
+          <div class="bh-details">
+            <div class="bh-name">{{ h.name }}</div>
+            <div class="bh-city"><i class="fa-solid fa-location-dot"></i> {{ h.city }}</div>
+          </div>
+          <a href="{% url 'room_list' h.id %}" style="color:var(--primary); font-size:14px;" title="View Rooms">
+            <i class="fa-solid fa-angle-right"></i>
+          </a>
+        </div>
+        {% empty %}
+        <div style="text-align:center; padding:20px; color:var(--text-muted); font-size:13px;">
+          No booked hotels list available.
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- QUICK HELP / SUPPORT CARD -->
+    <div class="content-card" style="background: linear-gradient(135deg, rgba(78,99,255,0.06), rgba(123,92,255,0.06)); border-color: rgba(78,99,255,0.2);">
+      <h6 style="font-weight:700; color:var(--text); margin-bottom:6px;"><i class="fa-solid fa-headset" style="color:var(--primary); margin-right:6px;"></i> Need Assistance?</h6>
+      <p style="font-size:13px; color:var(--text-muted); margin-bottom:12px; line-height:1.5;">Our StayEasy customer support team is available 24/7 to assist with your bookings.</p>
+      <a href="tel:+919876543210" class="btn-hero-action primary" style="width:100%; justify-content:center;">
+        <i class="fa-solid fa-phone"></i> Call Support
+      </a>
+    </div>
+  </div>
+
+</div>
+
+<!-- CHART.JS LOGIC -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+  const labels = {{ chart_labels|safe }};
+  const values = {{ chart_data|safe }};
+  const ctx = document.getElementById('bookingsChart');
+
+  if(ctx) {
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    const gridColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)';
+    const textColor = isDark ? '#8b92a5' : '#6b7280';
+
+    new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [{
+          data: values,
+          label: "Bookings",
+          borderColor: "#4e63ff",
+          borderWidth: 3,
+          backgroundColor: "rgba(78,99,255,0.12)",
+          fill: true,
+          tension: 0.4,
+          pointRadius: 4,
+          pointBackgroundColor: "#7b5cff",
+          pointHoverRadius: 6
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: {
+            grid: { display: false },
+            ticks: { color: textColor, font: { size: 11 } }
+          },
+          y: {
+            beginAtZero: true,
+            grid: { color: gridColor },
+            ticks: { color: textColor, font: { size: 11 }, precision: 0 }
+          }
+        }
+      }
+    });
+  }
+});
+</script>
+
+{% endblock %}

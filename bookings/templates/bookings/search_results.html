@@ -1,0 +1,157 @@
+{% extends "bookings/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Search Results for "{{ query }}" | StayEasy{% endblock %}
+
+{% block extra_styles %}
+<style>
+.search-container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.search-title {
+  font-size: 26px;
+  font-weight: 800;
+  color: var(--text);
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.hotel-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 24px;
+}
+
+.hotel-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--transition), box-shadow var(--transition);
+  display: flex;
+  flex-direction: column;
+}
+.hotel-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-md);
+}
+
+.hotel-img-wrapper {
+  width: 100%;
+  height: 200px;
+  overflow: hidden;
+  background: var(--surface2);
+  position: relative;
+}
+
+.hotel-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.hotel-content {
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.hotel-name {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 6px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.hotel-city {
+  color: var(--text-muted);
+  font-size: 13px;
+  margin-bottom: 16px;
+}
+
+.view-btn {
+  margin-top: auto;
+  display: block;
+  width: 100%;
+  text-align: center;
+  padding: 10px;
+  background: var(--primary-gradient);
+  color: white !important;
+  border-radius: 10px;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 700;
+  transition: opacity var(--transition);
+}
+.view-btn:hover { opacity: 0.9; }
+
+.no-results {
+  padding: 60px 20px;
+  text-align: center;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  color: var(--text-muted);
+}
+
+@media (max-width: 991px) {
+  .hotel-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 600px) {
+  .hotel-grid { grid-template-columns: 1fr; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="search-container">
+  <div class="search-title">
+    <i class="fa-solid fa-magnifying-glass" style="color:var(--primary);"></i>
+    Search Results for "{{ query }}"
+  </div>
+
+  {% if hotels %}
+    <div class="hotel-grid">
+      {% for hotel in hotels %}
+        <div class="hotel-card">
+          <div class="hotel-img-wrapper">
+            {% if hotel.image %}
+              <img src="{{ hotel.image.url }}" class="hotel-img" alt="{{ hotel.name }}">
+            {% else %}
+              <img src="{% static 'images/default_hotel.jpg' %}" class="hotel-img" alt="Hotel image">
+            {% endif %}
+          </div>
+
+          <div class="hotel-content">
+            <div class="hotel-name">{{ hotel.name }}</div>
+            <div class="hotel-city"><i class="fa-solid fa-location-dot" style="color:var(--primary);margin-right:4px;"></i> {{ hotel.city }}</div>
+
+            <a href="{% url 'room_list' hotel.id %}" class="view-btn">
+              View Rooms →
+            </a>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="no-results">
+      <i class="fa-solid fa-hotel" style="font-size:42px; color:var(--border); display:block; margin-bottom:12px;"></i>
+      <h3 style="color:var(--text); font-weight:700;">No hotels matching "{{ query }}"</h3>
+      <p>Try searching for a different city or location.</p>
+    </div>
+  {% endif %}
+</div>
+
+{% endblock %}

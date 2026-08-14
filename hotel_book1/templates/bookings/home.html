@@ -1,0 +1,494 @@
+{% extends "bookings/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Explore Hotels | StayEasy{% endblock %}
+
+{% block extra_styles %}
+<style>
+.home-page {
+  width: 100%;
+  max-width: 1300px;
+  margin: 0 auto;
+}
+
+/* HERO BANNER & REAL SEARCH */
+.explore-hero-banner {
+  background: linear-gradient(135deg, rgba(78,99,255,0.09) 0%, rgba(123,92,255,0.09) 100%);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 36px 28px;
+  margin-bottom: 24px;
+  box-shadow: var(--shadow-sm);
+}
+
+.explore-hero-banner h1 {
+  font-size: 34px;
+  font-weight: 800;
+  color: var(--text);
+  margin-bottom: 6px;
+  text-align: center;
+}
+
+.explore-hero-banner p {
+  color: var(--text-muted);
+  font-size: 15px;
+  text-align: center;
+  max-width: 560px;
+  margin: 0 auto 24px;
+}
+
+/* REAL WORLD SEARCH BAR */
+.real-search-box {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 10px 14px;
+  box-shadow: var(--shadow-md);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  max-width: 900px;
+  margin: 0 auto;
+  flex-wrap: wrap;
+}
+
+.search-field-group {
+  flex: 1;
+  min-width: 160px;
+  display: flex;
+  flex-direction: column;
+}
+
+.search-field-group label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  margin-bottom: 2px;
+}
+
+.search-field-group input, .search-field-group select {
+  border: none;
+  background: transparent;
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 600;
+  outline: none;
+  width: 100%;
+  font-family: inherit;
+}
+
+.search-field-divider {
+  width: 1px;
+  height: 32px;
+  background: var(--border);
+}
+
+.btn-search-submit {
+  padding: 12px 28px;
+  border: none;
+  border-radius: 12px;
+  background: var(--primary-gradient);
+  color: white;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity var(--transition);
+  white-space: nowrap;
+}
+.btn-search-submit:hover { opacity: 0.9; }
+
+/* CATEGORY & FILTER BAR */
+.filter-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.filter-pills {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+.pill-btn {
+  padding: 8px 16px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition);
+  white-space: nowrap;
+}
+.pill-btn:hover { border-color: var(--primary); color: var(--primary); }
+.pill-btn.active {
+  background: var(--primary-gradient);
+  color: white;
+  border-color: transparent;
+}
+
+.sort-select-wrapper select {
+  padding: 8px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 600;
+  outline: none;
+  cursor: pointer;
+}
+
+/* HOTEL GRID */
+.home-hotel-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 24px;
+}
+
+.home-hotel-card {
+  background: var(--surface);
+  border-radius: 18px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--transition), box-shadow var(--transition);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+.home-hotel-card:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--shadow-md);
+}
+
+.slider-container {
+  width: 100%;
+  height: 210px;
+  overflow: hidden;
+  position: relative;
+  background: var(--surface2);
+}
+
+.slider-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* WISHLIST HEART BUTTON */
+.btn-wishlist {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.85);
+  backdrop-filter: blur(4px);
+  border: none;
+  color: #ef4444;
+  font-size: 16px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  z-index: 5;
+  transition: transform var(--transition), background var(--transition);
+}
+.btn-wishlist:hover { transform: scale(1.15); background: #ffffff; }
+.btn-wishlist.active i { font-weight: 900; }
+
+.city-pill-badge {
+  position: absolute;
+  top: 12px; left: 12px;
+  background: rgba(0,0,0,0.65);
+  backdrop-filter: blur(4px);
+  color: white;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 20px;
+  display: flex; align-items: center; gap: 4px;
+}
+
+.home-hotel-card-body {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.rating-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #f59e0b;
+  margin-bottom: 6px;
+}
+
+.home-hotel-card-body h4 {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0 0 6px 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.home-hotel-card-body p {
+  color: var(--text-muted);
+  font-size: 13px;
+  margin: 0 0 12px 0;
+  line-height: 1.4;
+}
+
+.amenities-row {
+  display: flex;
+  gap: 12px;
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-bottom: 16px;
+}
+.amenities-row span { display: flex; align-items: center; gap: 4px; }
+
+.view-rooms-btn {
+  margin-top: auto;
+  display: block;
+  width: 100%;
+  text-align: center;
+  padding: 11px;
+  background: var(--primary-gradient);
+  color: white !important;
+  text-decoration: none !important;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 700;
+  transition: opacity var(--transition);
+}
+.view-rooms-btn:hover { opacity: 0.9; }
+
+.no-hotels {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 60px 20px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+}
+
+@media (max-width: 991px) {
+  .home-hotel-grid { grid-template-columns: repeat(2, 1fr); }
+  .explore-hero-banner h1 { font-size: 28px; }
+  .search-field-divider { display: none; }
+}
+
+@media (max-width: 600px) {
+  .home-hotel-grid { grid-template-columns: 1fr; }
+  .real-search-box { flex-direction: column; align-items: stretch; }
+  .btn-search-submit { width: 100%; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="home-page">
+
+  <!-- BANNER & REAL SEARCH BAR -->
+  <div class="explore-hero-banner">
+    <h1>🏨 Discover Your Ideal Stay</h1>
+    <p>Compare prices, explore guest ratings, and book luxury hotels worldwide.</p>
+
+    <form method="GET" class="real-search-box" action="{% url 'home' %}">
+      <div class="search-field-group">
+        <label><i class="fa-solid fa-location-dot" style="color:var(--primary);"></i> Destination</label>
+        <input type="text" name="city" placeholder="e.g. Mumbai, Delhi" value="{{ request.GET.city|default:'' }}">
+      </div>
+
+      <div class="search-field-divider"></div>
+
+      <div class="search-field-group">
+        <label><i class="fa-solid fa-calendar-days" style="color:var(--primary);"></i> Check-In</label>
+        <input type="date" name="check_in" id="searchCheckIn">
+      </div>
+
+      <div class="search-field-divider"></div>
+
+      <div class="search-field-group">
+        <label><i class="fa-solid fa-user-group" style="color:var(--primary);"></i> Guests</label>
+        <select name="guests">
+          <option value="1">1 Guest</option>
+          <option value="2" selected>2 Guests</option>
+          <option value="3">3 Guests</option>
+          <option value="4">4+ Guests</option>
+        </select>
+      </div>
+
+      <button type="submit" class="btn-search-submit">
+        <i class="fa-solid fa-magnifying-glass"></i> Search Hotels
+      </button>
+    </form>
+  </div>
+
+  <!-- CATEGORIES & FILTER BAR -->
+  <div class="filter-bar">
+    <div class="filter-pills">
+      <button class="pill-btn active" onclick="filterCategory('all', this)">All Hotels</button>
+      <button class="pill-btn" onclick="filterCategory('rating', this)">⭐ 4.5+ Top Rated</button>
+      <button class="pill-btn" onclick="filterCategory('pool', this)">🏊 Pool Access</button>
+      <button class="pill-btn" onclick="filterCategory('wifi', this)">📶 Free WiFi</button>
+      <button class="pill-btn" onclick="filterCategory('saved', this)">❤️ Saved Wishlist</button>
+    </div>
+
+    <div class="sort-select-wrapper">
+      <select id="sortSelect" onchange="sortHotels(this.value)">
+        <option value="default">Sort by: Recommended</option>
+        <option value="name-asc">Name: A to Z</option>
+        <option value="rating">Top Rated First</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- HOTEL GRID -->
+  <div class="home-hotel-grid" id="hotelGrid">
+    {% for hotel in hotels %}
+    <div class="home-hotel-card" data-id="{{ hotel.id }}" data-name="{{ hotel.name }}" data-rating="4.8">
+
+      <!-- WISHLIST HEART -->
+      <button class="btn-wishlist" onclick="toggleWishlist('{{ hotel.id }}', this)" title="Add to Wishlist">
+        <i class="fa-regular fa-heart"></i>
+      </button>
+
+      <div class="slider-container">
+        {% if hotel.image %}
+          <img src="{{ hotel.image.url }}" class="slider-img" alt="{{ hotel.name }}">
+        {% else %}
+          <img src="{% static 'images/default_hotel.jpg' %}" class="slider-img" alt="Hotel image">
+        {% endif %}
+
+        {% if hotel.city %}
+          <div class="city-pill-badge">
+            <i class="fa-solid fa-location-dot"></i> {{ hotel.city }}
+          </div>
+        {% endif %}
+      </div>
+
+      <div class="home-hotel-card-body">
+        <div class="rating-badge">
+          <span>★ 4.8</span> <span style="color:var(--text-muted); font-weight:500;">(124 reviews)</span>
+        </div>
+
+        <h4>{{ hotel.name }}</h4>
+        <p><i class="fa-solid fa-map-pin" style="color:var(--primary);margin-right:4px;"></i> {{ hotel.address }}</p>
+
+        <div class="amenities-row">
+          <span><i class="fa-solid fa-wifi" style="color:var(--primary);"></i> Free WiFi</span>
+          <span><i class="fa-solid fa-water-ladder" style="color:var(--primary);"></i> Pool</span>
+          <span><i class="fa-solid fa-snowflake" style="color:var(--primary);"></i> AC</span>
+        </div>
+
+        <a href="{% url 'room_list' hotel.id %}" class="view-rooms-btn">
+          View Available Rooms →
+        </a>
+      </div>
+
+    </div>
+    {% empty %}
+    <div class="no-hotels">
+      <i class="fa-solid fa-hotel" style="font-size:42px; color:var(--border); display:block; margin-bottom:12px;"></i>
+      <h3 style="color:var(--text); font-weight:700;">No hotels found</h3>
+      <p style="color:var(--text-muted);">Try searching for another city or location.</p>
+    </div>
+    {% endfor %}
+  </div>
+
+</div>
+
+<!-- INTERACTIVE WISHLIST & FILTERING SCRIPT -->
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+  // Set default checkin date to today
+  const checkIn = document.getElementById("searchCheckIn");
+  if(checkIn && !checkIn.value) {
+    checkIn.value = new Date().toISOString().split('T')[0];
+  }
+
+  // Restore saved wishlist state
+  updateWishlistUI();
+});
+
+function getWishlist() {
+  return JSON.parse(localStorage.getItem("stayeasy_wishlist") || "[]");
+}
+
+function toggleWishlist(hotelId, btn) {
+  let list = getWishlist();
+  if(list.includes(hotelId)) {
+    list = list.filter(id => id !== hotelId);
+    btn.classList.remove("active");
+    btn.querySelector("i").className = "fa-regular fa-heart";
+  } else {
+    list.push(hotelId);
+    btn.classList.add("active");
+    btn.querySelector("i").className = "fa-solid fa-heart";
+  }
+  localStorage.setItem("stayeasy_wishlist", JSON.stringify(list));
+}
+
+function updateWishlistUI() {
+  const list = getWishlist();
+  document.querySelectorAll(".home-hotel-card").forEach(card => {
+    const id = card.getAttribute("data-id");
+    const btn = card.querySelector(".btn-wishlist");
+    if(btn && list.includes(id)) {
+      btn.classList.add("active");
+      btn.querySelector("i").className = "fa-solid fa-heart";
+    }
+  });
+}
+
+function filterCategory(cat, btn) {
+  document.querySelectorAll(".pill-btn").forEach(b => b.classList.remove("active"));
+  btn.classList.add("active");
+
+  const cards = document.querySelectorAll(".home-hotel-card");
+  const wishlist = getWishlist();
+
+  cards.forEach(card => {
+    const id = card.getAttribute("data-id");
+    if(cat === "saved") {
+      card.style.display = wishlist.includes(id) ? "flex" : "none";
+    } else {
+      card.style.display = "flex";
+    }
+  });
+}
+
+function sortHotels(criteria) {
+  const grid = document.getElementById("hotelGrid");
+  const cards = Array.from(grid.querySelectorAll(".home-hotel-card"));
+
+  cards.sort((a, b) => {
+    const nameA = a.getAttribute("data-name").toLowerCase();
+    const nameB = b.getAttribute("data-name").toLowerCase();
+    if(criteria === "name-asc") return nameA.localeCompare(nameB);
+    return 0;
+  });
+
+  cards.forEach(c => grid.appendChild(c));
+}
+</script>
+
+{% endblock %}

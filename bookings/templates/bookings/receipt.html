@@ -1,0 +1,99 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Receipt</title>
+    <link rel="stylesheet" href="{% static 'css/responsive.css' %}">
+    <style>
+        body {
+            font-family: Arial;
+            background: #f5f7fb;
+            padding: 30px 15px;
+        }
+        @media (max-width: 576px) {
+            body { padding: 15px 10px; }
+            .receipt { padding: 15px !important; }
+        }
+        .receipt {
+            max-width: 600px;
+            margin: auto;
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+        h2 {
+            text-align: center;
+            color: #4e63ff;
+        }
+        .row {
+            display: flex;
+            justify-content: space-between;
+            margin: 10px 0;
+        }
+        .total {
+            font-size: 20px;
+            font-weight: bold;
+            color: green;
+        }
+        .btn {
+            display: block;
+            text-align: center;
+            margin-top: 20px;
+            padding: 10px;
+            background: #4e63ff;
+            color: white;
+            border-radius: 8px;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+
+<div class="receipt">
+    <h2>🧾 Booking Receipt</h2>
+
+    <div class="row">
+        <span>Booking ID:</span>
+        <span>#{{ booking.id }}</span>
+    </div>
+
+    <div class="row">
+        <span>Hotel:</span>
+        <span>{{ booking.room.hotel.name }}</span>
+    </div>
+
+    <div class="row">
+        <span>Room:</span>
+        <span>{{ booking.room.room_type }}</span>
+    </div>
+
+    <div class="row">
+        <span>Check-in:</span>
+        <span>{{ booking.check_in }}</span>
+    </div>
+
+    <div class="row">
+        <span>Check-out:</span>
+        <span>{{ booking.check_out }}</span>
+    </div>
+
+    <div class="row">
+        <span>Guests:</span>
+        <span>{{ booking.guests }}</span>
+    </div>
+
+    <hr>
+
+    <div class="row total">
+        <span>Total Paid:</span>
+        <span>₹{{ booking.total_price }}</span>
+    </div>
+
+    <a href="{% url 'dashboard' %}" class="btn">Back to Dashboard</a>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Chatbot</title>
+  <style>
+    body { font-family: Arial; margin:0; padding:10px; }
+    #messages { height: 360px; overflow-y: auto; border:1px solid #ddd; border-radius:10px; padding:10px; }
+    #input { margin-top:10px; display:flex; gap:10px; }
+    #msg { flex:1; padding:10px; border-radius:8px; border:1px solid #aaa; }
+    button { padding:10px 15px; background:#6a5bff; color:white; border:none; border-radius:8px; }
+  </style>
+</head>
+<body>
+
+<h3>Chat with StayEasy Assistant 🤖</h3>
+
+<div id="messages"></div>
+
+<div id="input">
+  <input type="text" id="msg" placeholder="Type a message..."/>
+  <button onclick="sendMsg()">Send</button>
+</div>
+
+<script>
+  function sendMsg() {
+    let m = document.getElementById("msg").value;
+    if (!m) return;
+
+    let box = document.getElementById("messages");
+    box.innerHTML += `<p><strong>You:</strong> ${m}</p>`;
+
+    fetch(`/chatbot/?message=` + encodeURIComponent(m))
+      .then(res => res.json())
+      .then(data => {
+        box.innerHTML += `<p><strong>Bot:</strong> ${data.reply}</p>`;
+        box.scrollTop = box.scrollHeight;
+      });
+
+    document.getElementById("msg").value = "";
+  }
+</script>
+
+</body>
+</html>

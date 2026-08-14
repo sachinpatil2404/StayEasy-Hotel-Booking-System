@@ -1,0 +1,194 @@
+{% extends "bookings/base_dashboard.html" %}
+{% load static %}
+{% load currency_tags %}
+{% load i18n %}
+
+{% block title %}My Bookings | StayEasy{% endblock %}
+
+{% block extra_styles %}
+<style>
+.booking-page-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 30px;
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 30px;
+}
+
+.booking-title {
+  font-size: 26px;
+  font-weight: 800;
+  color: var(--text);
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.table-custom {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table-custom th {
+  background: var(--surface2);
+  padding: 14px 16px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+}
+
+.table-custom td {
+  padding: 16px;
+  font-size: 14px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+  vertical-align: middle;
+}
+
+.table-custom tbody tr:hover {
+  background: var(--surface2);
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  font-size: 12px;
+  border-radius: 20px;
+  font-weight: 700;
+}
+
+.status-pending {
+  background: rgba(245,158,11,0.12);
+  color: #f59e0b;
+  border: 1px solid rgba(245,158,11,0.25);
+}
+
+.status-confirmed {
+  background: rgba(16,185,129,0.12);
+  color: #10b981;
+  border: 1px solid rgba(16,185,129,0.25);
+}
+
+.btn-action-pay {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  background: #10b981;
+  color: white !important;
+  border-radius: 8px;
+  text-decoration: none;
+  font-size: 12px;
+  font-weight: 700;
+  transition: opacity var(--transition);
+}
+.btn-action-pay:hover { opacity: 0.9; }
+
+.btn-action-cancel {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  background: rgba(239,68,68,0.1);
+  color: #ef4444 !important;
+  border: 1px solid rgba(239,68,68,0.2);
+  border-radius: 8px;
+  text-decoration: none;
+  font-size: 12px;
+  font-weight: 700;
+  transition: all var(--transition);
+}
+.btn-action-cancel:hover { background: #ef4444; color: white !important; }
+
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 20px;
+  color: var(--primary);
+  font-weight: 600;
+  text-decoration: none;
+  font-size: 14px;
+}
+.back-link:hover { text-decoration: underline; }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="booking-page-card">
+  <h2 class="booking-title">
+    <i class="fa-solid fa-calendar-check" style="color:var(--primary);"></i>
+    My Bookings
+  </h2>
+
+  <div class="table-responsive">
+    <table class="table-custom">
+      <thead>
+        <tr>
+          <th>Booking ID</th>
+          <th>Hotel</th>
+          <th>Room Details</th>
+          <th>Check-in</th>
+          <th>Check-out</th>
+          <th>Total Cost</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for booking in bookings %}
+        <tr>
+          <td style="font-weight:700; color:var(--primary);">#{{ booking.id }}</td>
+          <td style="font-weight:700;">{{ booking.room.hotel.name }}</td>
+          <td>{{ booking.room.room_number }} <span style="color:var(--text-muted);">({{ booking.room.room_type }})</span></td>
+          <td>{{ booking.check_in|date:"M d, Y" }}</td>
+          <td>{{ booking.check_out|date:"M d, Y" }}</td>
+          <td style="font-weight:700;">{{ booking.total_price|currency:request }}</td>
+          <td>
+            {% if booking.payment_status == "Pending" %}
+              <span class="status-badge status-pending"><i class="fa-solid fa-clock"></i> Pending</span>
+            {% else %}
+              <span class="status-badge status-confirmed"><i class="fa-solid fa-circle-check"></i> Paid</span>
+            {% endif %}
+          </td>
+          <td>
+            <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+              {% if booking.payment_status == "Pending" %}
+                <a href="{% url 'fake_payment' booking.id %}" class="btn-action-pay">
+                  <i class="fa-solid fa-credit-card"></i> Pay Now
+                </a>
+              {% endif %}
+
+              {% if booking.status == "confirmed" and booking.check_in > today %}
+                <a href="{% url 'cancel_booking' booking.id %}" class="btn-action-cancel" onclick="return confirm('Cancel this booking?')">
+                  <i class="fa-solid fa-xmark"></i> Cancel
+                </a>
+              {% endif %}
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="8" style="text-align:center; padding:40px; color:var(--text-muted);">
+            <i class="fa-solid fa-calendar-xmark" style="font-size:36px; display:block; margin-bottom:10px; color:var(--border);"></i>
+            No bookings found. <a href="{% url 'home' %}" style="color:var(--primary); font-weight:600;">Explore hotels →</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <a href="{% url 'home' %}" class="back-link">← Back to Hotels</a>
+</div>
+
+{% endblock %}

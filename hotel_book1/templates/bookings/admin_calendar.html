@@ -1,0 +1,214 @@
+{% extends "bookings/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Room Availability & Booking Calendar | StayEasy Admin{% endblock %}
+
+{% block extra_styles %}
+<style>
+.calendar-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 24px;
+  box-shadow: var(--shadow-sm);
+}
+
+/* FullCalendar Custom Theme Overrides */
+.fc {
+  --fc-border-color: var(--border);
+  --fc-page-bg-color: var(--surface);
+  --fc-neutral-bg-color: var(--surface2);
+  --fc-list-event-hover-bg-color: var(--surface2);
+  font-family: inherit;
+}
+.fc .fc-toolbar-title {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--text);
+}
+.fc .fc-button-primary {
+  background: var(--primary-gradient) !important;
+  border: none !important;
+  border-radius: 8px !important;
+  font-weight: 700 !important;
+  font-size: 13px !important;
+  box-shadow: var(--shadow-sm);
+}
+.fc .fc-button-primary:hover {
+  opacity: 0.9 !important;
+}
+.fc .fc-daygrid-day-number {
+  color: var(--text);
+  font-weight: 600;
+}
+.fc .fc-col-header-cell-cushion {
+  color: var(--text-muted);
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 12px;
+}
+.fc-event {
+  cursor: pointer;
+  border-radius: 6px !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  padding: 3px 6px !important;
+}
+
+/* MODAL STYLING */
+.event-modal-backdrop {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.5);
+  backdrop-filter: blur(4px);
+  display: none;
+  align-items: center; justify-content: center;
+  z-index: 10000;
+}
+.event-modal-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 28px;
+  width: 440px;
+  max-width: calc(100vw - 32px);
+  box-shadow: var(--shadow-lg);
+  animation: modalIn 0.3s ease-out;
+}
+@keyframes modalIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.modal-detail-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 14px;
+}
+.modal-detail-row:last-child { border-bottom: none; }
+.modal-detail-label { color: var(--text-muted); font-weight: 600; }
+.modal-detail-val { color: var(--text); font-weight: 700; }
+
+.legend-bar {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  margin-bottom: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+.legend-dot {
+  width: 12px; height: 12px;
+  border-radius: 50%;
+  display: inline-block;
+}
+</style>
+<!-- Load FullCalendar v6 -->
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
+{% endblock %}
+
+{% block content %}
+
+<div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; margin-bottom:24px;">
+  <div>
+    <h1 style="font-size:26px; font-weight:800; color:var(--text); margin-bottom:4px;">
+      <i class="fa-solid fa-calendar-days" style="color:var(--primary); margin-right:8px;"></i>Room Availability & Booking Calendar
+    </h1>
+    <p style="color:var(--text-muted); font-size:14px; margin:0;">Visual interactive grid of room occupancy, check-in dates, and check-out timelines.</p>
+  </div>
+</div>
+
+<div class="legend-bar">
+  <span style="color:var(--text); font-weight:700;">Status Legend:</span>
+  <span><span class="legend-dot" style="background:#10b981;"></span> Confirmed Booking</span>
+  <span><span class="legend-dot" style="background:#ef4444;"></span> Cancelled</span>
+</div>
+
+<div class="calendar-card">
+  <div id="fullCalendar"></div>
+</div>
+
+<!-- EVENT DETAILS MODAL -->
+<div class="event-modal-backdrop" id="eventModalBackdrop" onclick="closeModal(event)">
+  <div class="event-modal-card" onclick="event.stopPropagation()">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:18px;">
+      <h3 style="font-size:18px; font-weight:800; color:var(--text); margin:0;" id="mTitle">Booking Details</h3>
+      <button type="button" onclick="closeModal()" style="border:none; background:transparent; font-size:20px; color:var(--text-muted); cursor:pointer;">✕</button>
+    </div>
+
+    <div class="modal-detail-row">
+      <span class="modal-detail-label">Customer Name:</span>
+      <span class="modal-detail-val" id="mCustomer">—</span>
+    </div>
+    <div class="modal-detail-row">
+      <span class="modal-detail-label">Hotel:</span>
+      <span class="modal-detail-val" id="mHotel">—</span>
+    </div>
+    <div class="modal-detail-row">
+      <span class="modal-detail-label">Room Number:</span>
+      <span class="modal-detail-val" id="mRoom">—</span>
+    </div>
+    <div class="modal-detail-row">
+      <span class="modal-detail-label">Room Type:</span>
+      <span class="modal-detail-val" id="mType">—</span>
+    </div>
+    <div class="modal-detail-row">
+      <span class="modal-detail-label">Check In:</span>
+      <span class="modal-detail-val" id="mCheckIn">—</span>
+    </div>
+    <div class="modal-detail-row">
+      <span class="modal-detail-label">Check Out:</span>
+      <span class="modal-detail-val" id="mCheckOut">—</span>
+    </div>
+    <div class="modal-detail-row">
+      <span class="modal-detail-label">Total Amount:</span>
+      <span class="modal-detail-val" style="color:#10b981;" id="mPrice">₹0</span>
+    </div>
+    <div class="modal-detail-row">
+      <span class="modal-detail-label">Booking Status:</span>
+      <span class="modal-detail-val" id="mStatus">—</span>
+    </div>
+
+    <button type="button" onclick="closeModal()" style="width:100%; margin-top:20px; padding:12px; border:none; border-radius:10px; background:var(--primary-gradient); color:white; font-weight:700; cursor:pointer;">
+      Close Details
+    </button>
+  </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  const calendarEl = document.getElementById('fullCalendar');
+  const calendar = new FullCalendar.Calendar(calendarEl, {
+    initialView: 'dayGridMonth',
+    headerToolbar: {
+      left: 'prev,next today',
+      center: 'title',
+      right: 'dayGridMonth,timeGridWeek,listMonth'
+    },
+    events: "{% url 'admin_calendar_events_api' %}",
+    eventClick: function(info) {
+      const props = info.event.extendedProps;
+      document.getElementById('mTitle').innerText = info.event.title;
+      document.getElementById('mCustomer').innerText = props.customer;
+      document.getElementById('mHotel').innerText = props.hotel;
+      document.getElementById('mRoom').innerText = 'Room ' + props.room_number;
+      document.getElementById('mType').innerText = props.room_type;
+      document.getElementById('mCheckIn').innerText = props.check_in;
+      document.getElementById('mCheckOut').innerText = props.check_out;
+      document.getElementById('mPrice').innerText = '₹' + props.price;
+      document.getElementById('mStatus').innerText = props.status;
+
+      document.getElementById('eventModalBackdrop').style.display = 'flex';
+    }
+  });
+  calendar.render();
+});
+
+function closeModal(e) {
+  document.getElementById('eventModalBackdrop').style.display = 'none';
+}
+</script>
+
+{% endblock %}

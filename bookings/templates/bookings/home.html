@@ -1,0 +1,107 @@
+{% extends "bookings/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Explore Hotels{% endblock %}
+
+{% block content %}
+
+<div class="home-page">
+
+    <!-- PAGE HEADER -->
+    <div class="explore-header">
+
+        <h1>🌍 Explore Hotels</h1>
+
+        <!-- SEARCH -->
+        <form method="GET" class="hotel-search-form">
+
+            <input
+                type="text"
+                name="city"
+                placeholder="Search city..."
+                value="{{ request.GET.city|default:'' }}"
+            >
+
+            <button type="submit">
+                Search
+            </button>
+
+        </form>
+
+    </div>
+
+
+    <!-- HOTEL GRID -->
+    <div class="home-hotel-grid">
+
+        {% for hotel in hotels %}
+
+        <div class="home-hotel-card">
+
+            <!-- IMAGE SLIDESHOW -->
+            <div
+                id="slider-{{ hotel.id }}"
+                class="slider-container"
+            >
+
+                {% for image in hotel.images.all %}
+
+                    <img
+                        src="{{ image.image.url }}"
+                        class="slider-img"
+                        alt="{{ hotel.name }}"
+                    >
+
+                {% empty %}
+
+                    <img
+                        src="{% static 'images/default_hotel.jpg' %}"
+                        class="slider-img"
+                        alt="Default hotel image"
+                    >
+
+                {% endfor %}
+
+            </div>
+
+
+            <!-- HOTEL DETAILS -->
+            <div class="home-hotel-card-body">
+
+                <h4>{{ hotel.name }}</h4>
+
+                <p>
+                    <i class="fa-solid fa-location-dot"></i>
+                    {{ hotel.address }}
+                </p>
+
+                <a
+                    href="{% url 'room_list' hotel.id %}"
+                    class="view-rooms-btn"
+                >
+                    View Rooms
+                </a>
+
+            </div>
+
+        </div>
+
+        {% empty %}
+
+        <div class="no-hotels">
+
+            <h3>No hotels found</h3>
+
+            <p>
+                Try searching for another city.
+            </p>
+
+        </div>
+
+        {% endfor %}
+
+    </div>
+
+</div>
+
+{% endblock %}

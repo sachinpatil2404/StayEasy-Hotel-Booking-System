@@ -1,0 +1,96 @@
+{% extends "bookings/base_dashboard.html" %}
+
+{% block content %}
+<style>
+.booking-card {
+    max-width: 550px;
+    margin: 30px auto;
+    border-radius: 12px;
+    border: none;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+}
+.alert-error {
+    background: #ffe6e6;
+    color: #cc0000;
+    padding: 12px 15px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    font-weight: 500;
+    border-left: 5px solid #ff4d4d;
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-5px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 576px) {
+    .booking-card {
+        margin: 15px auto;
+        padding: 10px;
+    }
+}
+</style>
+
+<div class="container">
+  <div class="card booking-card">
+    <div class="card-body">
+      <h2>Book Room</h2>
+      <p>Capacity: {{ room.capacity }} people</p>
+       {% if form.non_field_errors %}
+    <div class="alert-error">
+    ❌ {{ form.non_field_errors.0 }}
+    </div>
+{% endif %}
+
+      <form method="post">
+        {% csrf_token %}
+        {{ form.non_field_errors }}
+        <div class="form-group mb-3">
+            <label class="form-label">Check in:</label>
+            {{ form.check_in }}
+        </div>
+        <div class="form-group mb-3">
+            <label class="form-label">Check out:</label>
+            {{ form.check_out }}
+        </div>
+        <div class="form-group mb-3">
+            <label class="form-label">Guests:</label>
+            {{ form.guests }}
+        </div>
+          <p id="availability-msg" style="font-weight:bold;"></p>
+
+        <button type="submit" class="btn btn-primary w-100">Confirm Booking</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+const checkin = document.getElementById("checkin");
+const checkout = document.getElementById("checkout");
+const msg = document.getElementById("availability-msg");
+
+function checkAvailability() {
+    if (!checkin || !checkout || !checkin.value || !checkout.value) return;
+
+    fetch(`/check-availability/?room_id={{ room.id }}&check_in=${checkin.value}&check_out=${checkout.value}`)
+        .then(res => res.json())
+        .then(data => {
+            if (data.available) {
+                msg.innerHTML = "✅ Room Available";
+                msg.style.color = "green";
+            } else {
+                msg.innerHTML = "❌ Room Not Available";
+                msg.style.color = "red";
+            }
+        });
+}
+
+if (checkin && checkout) {
+    checkin.addEventListener("change", checkAvailability);
+    checkout.addEventListener("change", checkAvailability);
+}
+</script>
+{% endblock %}

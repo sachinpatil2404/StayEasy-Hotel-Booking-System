@@ -1,0 +1,352 @@
+{% extends "bookings/base_dashboard.html" %}
+{% load static %}
+{% load currency_tags %}
+
+{% block title %}Rooms in {{ hotel.name }} | StayEasy{% endblock %}
+
+{% block extra_styles %}
+<style>
+.room-list-page {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.hotel-banner-header {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 24px 28px;
+  margin-bottom: 24px;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.hotel-banner-title {
+  font-size: 26px;
+  font-weight: 800;
+  color: var(--text);
+  margin: 0 0 4px 0;
+}
+
+.hotel-banner-address {
+  font-size: 14px;
+  color: var(--text-muted);
+  margin: 0 0 8px 0;
+}
+
+.rating-summary-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #f59e0b;
+  background: rgba(245,158,11,0.1);
+  padding: 4px 12px;
+  border-radius: 20px;
+  border: 1px solid rgba(245,158,11,0.2);
+}
+
+/* RATING SUBMISSION CARD */
+.rating-form-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 20px 24px;
+  margin-bottom: 28px;
+  box-shadow: var(--shadow-sm);
+}
+
+.rating-stars-picker {
+  display: flex;
+  gap: 8px;
+  font-size: 24px;
+  color: var(--border);
+  cursor: pointer;
+  margin: 8px 0 14px;
+}
+.rating-stars-picker i.selected,
+.rating-stars-picker i:hover,
+.rating-stars-picker i:hover ~ i {
+  color: #f59e0b;
+}
+
+.room-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 24px;
+}
+
+.room-card-custom {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--transition), box-shadow var(--transition);
+  display: flex;
+  flex-direction: column;
+}
+.room-card-custom:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-md);
+}
+
+.room-slider {
+  width: 100%;
+  height: 210px;
+  position: relative;
+  overflow: hidden;
+  background: var(--surface2);
+}
+
+.slide-img {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity 0.8s ease-in-out;
+}
+.slide-img.active { opacity: 1; }
+
+.room-card-body {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.room-card-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0 0 6px 0;
+}
+
+.amenities-badges-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+.amenity-tag {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: var(--surface2);
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+}
+
+.room-meta-info {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-bottom: 14px;
+}
+
+.room-price-tag {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--primary);
+  margin-bottom: 18px;
+}
+.room-price-tag span {
+  font-size: 13px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.btn-book-room {
+  margin-top: auto;
+  display: block;
+  width: 100%;
+  text-align: center;
+  padding: 12px;
+  background: var(--primary-gradient);
+  color: white !important;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none !important;
+  transition: opacity var(--transition);
+}
+.btn-book-room:hover { opacity: 0.9; }
+
+.no-rooms-card {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 60px 20px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  color: var(--text-muted);
+}
+
+@media (max-width: 991px) {
+  .room-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 600px) {
+  .room-grid { grid-template-columns: 1fr; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="room-list-page">
+
+  <!-- HOTEL BANNER HEADER -->
+  <div class="hotel-banner-header">
+    <div>
+      <h1 class="hotel-banner-title"><i class="fa-solid fa-hotel" style="color:var(--primary);margin-right:8px;"></i>{{ hotel.name }}</h1>
+      <p class="hotel-banner-address"><i class="fa-solid fa-location-dot" style="color:var(--primary);margin-right:4px;"></i>{{ hotel.address }}, {{ hotel.city }}</p>
+      
+      <div class="rating-summary-pill">
+        ★ {{ hotel.average_rating }} / 5.0
+        <span style="color:var(--text-muted); font-weight:500;">({{ hotel.ratings_count }} user ratings)</span>
+      </div>
+    </div>
+
+    <a href="{% url 'home' %}" style="font-size:14px; color:var(--primary); font-weight:600; text-decoration:none;">← Back to Hotels</a>
+  </div>
+
+  <!-- RATE THIS HOTEL CARD (FOR USER RATING) -->
+  {% if user.is_authenticated %}
+  <div class="rating-form-card">
+    <h5 style="font-size:16px; font-weight:700; color:var(--text); margin:0 0 4px 0;">
+      <i class="fa-solid fa-star" style="color:#f59e0b; margin-right:6px;"></i>
+      {% if user_rating %}Update Your Rating for {{ hotel.name }}{% else %}Rate & Review This Hotel{% endif %}
+    </h5>
+    <p style="font-size:13px; color:var(--text-muted); margin-bottom:12px;">Share your experience with other travelers.</p>
+
+    <form method="POST" action="{% url 'rate_hotel' hotel.id %}">
+      {% csrf_token %}
+      <input type="hidden" name="rating" id="ratingValue" value="{{ user_rating.rating|default:'5' }}">
+
+      <div class="rating-stars-picker" id="starPicker">
+        <i class="fa-solid fa-star selected" data-val="1"></i>
+        <i class="fa-solid fa-star selected" data-val="2"></i>
+        <i class="fa-solid fa-star selected" data-val="3"></i>
+        <i class="fa-solid fa-star selected" data-val="4"></i>
+        <i class="fa-solid fa-star selected" data-val="5"></i>
+      </div>
+
+      <div style="display:flex; gap:12px; align-items:center;">
+        <input type="text" name="review" class="form-control" placeholder="Write a short review (optional)..." value="{{ user_rating.review|default:'' }}" style="flex:1;">
+        <button type="submit" class="btn-book-room" style="width:auto; padding:10px 20px;">
+          Submit Rating
+        </button>
+      </div>
+    </form>
+  </div>
+  {% endif %}
+
+  <!-- ROOM GRID -->
+  <div class="room-grid">
+    {% for room in rooms %}
+    <div class="room-card-custom">
+
+      <div class="room-slider">
+        {% if room.images.exists %}
+          {% for img in room.images.all %}
+            <img src="{{ img.image.url }}" class="slide-img {% if forloop.first %}active{% endif %}" alt="{{ room.room_type }}">
+          {% endfor %}
+        {% else %}
+          <div style="display:flex; align-items:center; justify-content:center; height:100%; color:var(--text-muted); font-size:14px;">
+            <i class="fa-solid fa-image" style="font-size:28px; margin-right:8px;"></i> No image available
+          </div>
+        {% endif %}
+      </div>
+
+      <div class="room-card-body">
+        <h3 class="room-card-title">Room {{ room.room_number }} — {{ room.room_type }}</h3>
+
+        <!-- AMENITY BADGES -->
+        <div class="amenities-badges-row">
+          {% if room.is_ac %}
+            <span class="amenity-tag">❄️ Air Conditioned</span>
+          {% endif %}
+          {% if room.has_wifi %}
+            <span class="amenity-tag">📶 Free WiFi</span>
+          {% endif %}
+          {% if room.has_breakfast %}
+            <span class="amenity-tag">🍳 Free Breakfast</span>
+          {% endif %}
+        </div>
+
+        <div class="room-meta-info">
+          <span><i class="fa-solid fa-user-group" style="color:var(--primary);"></i> Up to {{ room.capacity }} Guests</span>
+        </div>
+
+        <div class="room-price-tag">
+          {{ room.price_per_night|currency:request }} <span>/ night</span>
+        </div>
+
+        <a href="{% url 'book_room' room.id %}" class="btn-book-room">
+          Book This Room →
+        </a>
+      </div>
+
+    </div>
+    {% empty %}
+    <div class="no-rooms-card">
+      <i class="fa-solid fa-bed" style="font-size:42px; color:var(--border); display:block; margin-bottom:12px;"></i>
+      <h3 style="color:var(--text); font-weight:700;">No rooms available</h3>
+      <p>There are currently no rooms listed for this hotel.</p>
+    </div>
+    {% endfor %}
+  </div>
+
+</div>
+
+<!-- SLIDESHOW & STAR RATING SCRIPT -->
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  // Room image sliders
+  const sliders = document.querySelectorAll(".room-slider");
+  sliders.forEach(slider => {
+    let slides = slider.querySelectorAll(".slide-img");
+    let index = 0;
+    if (slides.length > 1) {
+      setInterval(() => {
+        slides[index].classList.remove("active");
+        index = (index + 1) % slides.length;
+        slides[index].classList.add("active");
+      }, 4000);
+    }
+  });
+
+  // Star Rating Picker
+  const stars = document.querySelectorAll("#starPicker i");
+  const input = document.getElementById("ratingValue");
+
+  if(stars.length) {
+    const setStars = (val) => {
+      stars.forEach((s, idx) => {
+        if(idx < val) s.classList.add("selected");
+        else s.classList.remove("selected");
+      });
+    };
+    
+    if(input && input.value) setStars(parseInt(input.value));
+
+    stars.forEach(s => {
+      s.addEventListener("click", function() {
+        const val = parseInt(this.getAttribute("data-val"));
+        if(input) input.value = val;
+        setStars(val);
+      });
+    });
+  }
+});
+</script>
+
+{% endblock %}

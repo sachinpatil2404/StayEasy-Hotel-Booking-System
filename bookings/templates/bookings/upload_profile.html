@@ -1,0 +1,158 @@
+{% extends "bookings/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Update Profile Photo | StayEasy{% endblock %}
+
+{% block extra_styles %}
+<style>
+.profile-upload-card {
+  max-width: 480px;
+  margin: 20px auto;
+  background: var(--surface);
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  padding: 36px 30px;
+  box-shadow: var(--shadow-md);
+  text-align: center;
+}
+
+.current-avatar-circle {
+  position: relative;
+  width: 110px;
+  height: 110px;
+  margin: 0 auto 16px;
+}
+
+.current-avatar-img {
+  width: 110px;
+  height: 110px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 4px solid var(--primary);
+  box-shadow: var(--shadow-md);
+  background: var(--surface2);
+}
+
+.upload-file-label {
+  display: block;
+  margin-top: 20px;
+  padding: 24px 16px;
+  border: 2px dashed var(--border);
+  border-radius: 14px;
+  cursor: pointer;
+  background: var(--surface2);
+  color: var(--text);
+  font-weight: 600;
+  font-size: 14px;
+  transition: all var(--transition);
+}
+.upload-file-label:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+  background: var(--surface);
+}
+
+.upload-file-label input[type="file"] {
+  display: none;
+}
+
+.btn-submit-photo {
+  margin-top: 20px;
+  width: 100%;
+  padding: 13px;
+  border: none;
+  border-radius: 12px;
+  background: var(--primary-gradient);
+  color: white;
+  font-weight: 700;
+  font-size: 15px;
+  cursor: pointer;
+  transition: opacity var(--transition);
+}
+.btn-submit-photo:hover { opacity: 0.9; }
+
+.btn-cancel-link {
+  display: inline-block;
+  margin-top: 14px;
+  color: var(--text-muted);
+  font-size: 13px;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color var(--transition);
+}
+.btn-cancel-link:hover { color: var(--text); }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="profile-upload-card">
+  <h2 style="font-size: 22px; font-weight: 800; color: var(--text); margin-bottom: 6px;">
+    Update Profile Photo
+  </h2>
+  <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 24px;">
+    Upload a clear profile image for your account
+  </p>
+
+  <!-- CURRENT AVATAR PREVIEW -->
+  <div class="current-avatar-circle">
+    {% if request.user.userprofile.profile_image %}
+      <img id="avatarPreview" src="{{ request.user.userprofile.profile_image.url }}" class="current-avatar-img" alt="{{ user.username }}">
+    {% else %}
+      <div id="avatarPreview" class="current-avatar-img" style="display:flex;align-items:center;justify-content:center;font-size:42px;font-weight:800;color:var(--primary);">
+        {{ user.username|first|upper }}
+      </div>
+    {% endif %}
+  </div>
+
+  <!-- FORM -->
+  <form method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
+
+    <label class="upload-file-label" id="fileDropLabel">
+      <i class="fa-solid fa-cloud-arrow-up" style="font-size: 28px; display: block; margin-bottom: 8px; color: var(--primary);"></i>
+      <span id="labelText">Click to choose image file</span>
+      {{ form.profile_image }}
+    </label>
+
+    <button type="submit" class="btn-submit-photo">
+      <i class="fa-solid fa-check"></i> Save New Photo
+    </button>
+  </form>
+
+  <a href="{% url 'dashboard' %}" class="btn-cancel-link">← Return to Dashboard</a>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+  const fileInput = document.querySelector("input[type='file']");
+  const avatarPreview = document.getElementById("avatarPreview");
+  const labelText = document.getElementById("labelText");
+
+  if(fileInput) {
+    fileInput.addEventListener("change", function(e) {
+      if(e.target.files && e.target.files[0]) {
+        const file = e.target.files[0];
+        labelText.textContent = "Selected: " + file.name;
+
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+          if(avatarPreview.tagName === "IMG") {
+            avatarPreview.src = evt.target.result;
+          } else {
+            // Replace placeholder div with img tag
+            const img = document.createElement("img");
+            img.id = "avatarPreview";
+            img.src = evt.target.result;
+            img.className = "current-avatar-img";
+            avatarPreview.parentNode.replaceChild(img, avatarPreview);
+          }
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+  }
+});
+</script>
+
+{% endblock %}

@@ -1,0 +1,1071 @@
+{% load static %}
+{% load i18n %}
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>{% block title %}StayEasy{% endblock %}</title>
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/site.css' %}">
+  <link rel="stylesheet" href="{% static 'css/responsive.css' %}">
+
+  {% block extra_styles %}{% endblock %}
+
+  <style>
+  /* =====================================================
+     CSS VARIABLES — Light / Dark Theme
+  ===================================================== */
+  :root {
+    --bg: #f5f7fb;
+    --surface: #ffffff;
+    --surface2: #f0f2f8;
+    --border: #e8eaf0;
+    --text: #1a2035;
+    --text-muted: #6b7280;
+    --primary: #4e63ff;
+    --primary-dark: #3d51e8;
+    --primary-gradient: linear-gradient(135deg, #4e63ff, #7b5cff);
+    --sidebar-bg: #ffffff;
+    --sidebar-text: #374151;
+    --sidebar-active: #4e63ff;
+    --topnav-bg: #ffffff;
+    --topnav-border: #e8eaf0;
+    --shadow-sm: 0 2px 8px rgba(0,0,0,0.06);
+    --shadow-md: 0 4px 20px rgba(0,0,0,0.10);
+    --shadow-lg: 0 8px 32px rgba(0,0,0,0.14);
+    --footer-bg: #111827;
+    --footer-text: #d1d5db;
+    --radius: 12px;
+    --transition: 0.22s ease;
+  }
+
+  [data-theme="dark"] {
+    --bg: #0d0f17;
+    --surface: #161924;
+    --surface2: #1e2130;
+    --border: #2a2d3e;
+    --text: #e8eaef;
+    --text-muted: #8b92a5;
+    --sidebar-bg: #161924;
+    --sidebar-text: #c8ccd6;
+    --topnav-bg: #161924;
+    --topnav-border: #2a2d3e;
+    --shadow-sm: 0 2px 8px rgba(0,0,0,0.3);
+    --shadow-md: 0 4px 20px rgba(0,0,0,0.4);
+    --shadow-lg: 0 8px 32px rgba(0,0,0,0.5);
+  }
+
+  /* =====================================================
+     GLOBAL RESET
+  ===================================================== */
+  *, *::before, *::after { box-sizing: border-box; }
+
+  html, body {
+    margin: 0; padding: 0;
+    font-family: 'Inter', Arial, sans-serif;
+    font-size: 15px;
+    background: var(--bg);
+    color: var(--text);
+    overflow-x: hidden;
+    transition: background var(--transition), color var(--transition);
+  }
+
+  img { max-width: 100%; height: auto; }
+
+  /* =====================================================
+     TOP NAVBAR
+  ===================================================== */
+  #topNavbar {
+    position: sticky;
+    top: 0;
+    z-index: 1100;
+    height: 68px;
+    background: var(--topnav-bg);
+    border-bottom: 1px solid var(--topnav-border);
+    box-shadow: var(--shadow-sm);
+    display: flex;
+    align-items: center;
+    padding: 0 20px 0 0;
+    gap: 0;
+    transition: background var(--transition), border-color var(--transition);
+  }
+
+  /* LEFT: sidebar toggle + brand */
+  .nav-left {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 0 20px;
+    height: 100%;
+    min-width: 260px;
+    border-right: 1px solid var(--topnav-border);
+  }
+
+  #sidebarToggleBtn {
+    width: 38px; height: 38px;
+    border: none;
+    background: var(--surface2);
+    border-radius: 8px;
+    color: var(--text-muted);
+    font-size: 18px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: background var(--transition), color var(--transition);
+    flex-shrink: 0;
+  }
+  #sidebarToggleBtn:hover { background: var(--primary); color: white; }
+
+  .brand-link {
+    text-decoration: none;
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--primary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;
+  }
+  .brand-link .brand-icon { font-size: 20px; }
+
+  /* CENTER: search / breadcrumb */
+  .nav-center {
+    flex: 1;
+    padding: 0 20px;
+    display: flex;
+    align-items: center;
+  }
+
+  .nav-search-wrapper {
+    position: relative;
+    max-width: 380px;
+    width: 100%;
+    display: flex;
+    align-items: center;
+  }
+  .nav-search-wrapper input {
+    width: 100%;
+    height: 40px;
+    padding: 8px 46px 8px 44px !important;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    font-size: 14px;
+    color: var(--text);
+    outline: none;
+    transition: all var(--transition);
+  }
+  .nav-search-wrapper input:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(78,99,255,0.15);
+    background: var(--surface);
+  }
+  .nav-search-wrapper input::placeholder { color: var(--text-muted); }
+  
+  .search-icon-left {
+    position: absolute;
+    left: 15px; top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+    font-size: 14px;
+    pointer-events: none;
+    z-index: 3;
+  }
+  .search-btn-inside {
+    position: absolute;
+    right: 5px; top: 50%;
+    transform: translateY(-50%);
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    background: var(--primary-gradient);
+    color: white;
+    border: none;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px;
+    cursor: pointer;
+    transition: transform var(--transition), opacity var(--transition);
+    z-index: 3;
+  }
+  .search-btn-inside:hover {
+    transform: translateY(-50%) scale(1.08);
+    opacity: 0.95;
+  }
+
+  /* RIGHT: actions */
+  .nav-right {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding-left: 16px;
+  }
+
+  /* icon buttons */
+  .nav-icon-btn {
+    width: 38px; height: 38px;
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 17px;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    position: relative;
+    transition: background var(--transition), color var(--transition);
+  }
+  .nav-icon-btn:hover { background: var(--surface2); color: var(--primary); }
+
+  /* notification badge */
+  .nav-icon-btn .badge-dot {
+    position: absolute;
+    top: 7px; right: 7px;
+    width: 8px; height: 8px;
+    background: #ef4444;
+    border-radius: 50%;
+    border: 2px solid var(--topnav-bg);
+  }
+
+  /* Theme toggle pill */
+  #themeToggle {
+    display: flex; align-items: center; gap: 6px;
+    padding: 6px 14px;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    background: var(--surface2);
+    color: var(--text);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all var(--transition);
+    white-space: nowrap;
+  }
+  #themeToggle:hover { border-color: var(--primary); color: var(--primary); background: var(--surface); }
+
+  /* divider */
+  .nav-divider {
+    width: 1px; height: 28px;
+    background: var(--border);
+    margin: 0 6px;
+  }
+
+  /* User avatar dropdown */
+  .user-dropdown { position: relative; }
+
+  .user-avatar-btn {
+    display: flex; align-items: center; gap: 10px;
+    padding: 5px 8px 5px 5px;
+    border: 1px solid var(--border);
+    border-radius: 30px;
+    background: var(--surface);
+    cursor: pointer;
+    transition: all var(--transition);
+    max-width: 200px;
+  }
+  .user-avatar-btn:hover { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(78,99,255,0.08); }
+
+  .user-avatar {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: var(--primary-gradient);
+    color: white;
+    font-size: 13px;
+    font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .user-info { display: flex; flex-direction: column; overflow: hidden; }
+  .user-name {
+    font-size: 13px; font-weight: 700;
+    color: var(--text);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    max-width: 110px;
+  }
+  .user-role {
+    font-size: 11px;
+    color: var(--text-muted);
+    line-height: 1;
+  }
+  .user-avatar-btn .caret {
+    font-size: 11px; color: var(--text-muted);
+    transition: transform var(--transition);
+    margin-left: auto;
+  }
+  .user-dropdown.open .caret { transform: rotate(180deg); }
+
+  /* Dropdown menu */
+  .user-dropdown-menu {
+    position: absolute;
+    top: calc(100% + 10px);
+    right: 0;
+    min-width: 210px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    box-shadow: var(--shadow-lg);
+    padding: 6px;
+    display: none;
+    z-index: 9999;
+    animation: dropIn 0.18s ease;
+  }
+  @keyframes dropIn {
+    from { opacity: 0; transform: translateY(-8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .user-dropdown.open .user-dropdown-menu { display: block; }
+
+  .dropdown-header {
+    padding: 10px 12px 8px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 4px;
+  }
+  .dropdown-header .d-name { font-weight: 700; font-size: 14px; color: var(--text); }
+  .dropdown-header .d-email { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+
+  .dropdown-item-custom {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 12px;
+    border-radius: 8px;
+    color: var(--text);
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 500;
+    transition: background var(--transition);
+    cursor: pointer;
+    border: none;
+    background: none;
+    width: 100%;
+    text-align: left;
+  }
+  .dropdown-item-custom i { width: 16px; color: var(--text-muted); text-align: center; }
+  .dropdown-item-custom:hover { background: var(--surface2); color: var(--primary); }
+  .dropdown-item-custom:hover i { color: var(--primary); }
+  .dropdown-item-custom.danger:hover { background: #fff0f0; color: #dc2626; }
+  .dropdown-item-custom.danger:hover i { color: #dc2626; }
+
+  .dropdown-divider-custom {
+    height: 1px; background: var(--border);
+    margin: 4px 0;
+  }
+
+  /* =====================================================
+     PAGE WRAPPER
+  ===================================================== */
+  .page-wrapper {
+    display: flex;
+    min-height: calc(100vh - 68px);
+  }
+
+  /* =====================================================
+     SIDEBAR
+  ===================================================== */
+  #sidebar {
+    width: 260px;
+    flex-shrink: 0;
+    background: var(--sidebar-bg);
+    border-right: 1px solid var(--border);
+    height: calc(100vh - 68px);
+    position: sticky;
+    top: 68px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 16px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    transition: width var(--transition), background var(--transition), border-color var(--transition), transform var(--transition);
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+
+  #sidebar::-webkit-scrollbar { width: 4px; }
+  #sidebar::-webkit-scrollbar-track { background: transparent; }
+  #sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+  /* Sidebar collapsed state */
+  #sidebar.collapsed {
+    width: 68px;
+  }
+  #sidebar.collapsed .sidebar-label,
+  #sidebar.collapsed .sidebar-section-title,
+  #sidebar.collapsed .sidebar-user { display: none; }
+  #sidebar.collapsed .sidebar-link { justify-content: center; padding: 12px; }
+  #sidebar.collapsed .sidebar-link i { margin: 0; }
+
+  /* Sidebar user block */
+  .sidebar-user {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 8px 14px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 8px;
+  }
+  .sidebar-user-avatar {
+    width: 36px; height: 36px;
+    border-radius: 10px;
+    background: var(--primary-gradient);
+    color: white;
+    font-size: 14px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .sidebar-user-name { font-size: 13px; font-weight: 700; color: var(--text); }
+  .sidebar-user-role { font-size: 11px; color: var(--text-muted); }
+
+  /* Section title */
+  .sidebar-section-title {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    padding: 10px 10px 4px;
+  }
+
+  /* Links */
+  .sidebar-link {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    color: var(--sidebar-text);
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all var(--transition);
+    position: relative;
+  }
+  .sidebar-link i {
+    font-size: 16px;
+    width: 18px;
+    text-align: center;
+    flex-shrink: 0;
+    color: var(--text-muted);
+    transition: color var(--transition);
+  }
+  .sidebar-link:hover {
+    background: var(--surface2);
+    color: var(--primary);
+  }
+  .sidebar-link:hover i { color: var(--primary); }
+  .sidebar-link.active {
+    background: rgba(78,99,255,0.10);
+    color: var(--primary);
+    font-weight: 700;
+  }
+  .sidebar-link.active i { color: var(--primary); }
+  .sidebar-link.active::before {
+    content: '';
+    position: absolute;
+    right: 0; top: 50%;
+    transform: translateY(-50%);
+    width: 3px; height: 60%;
+    background: var(--primary);
+    border-radius: 3px 0 0 3px;
+  }
+
+  /* Logout button in sidebar */
+  .sidebar-logout {
+    margin-top: auto;
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+  }
+  .sidebar-logout-btn {
+    display: flex; align-items: center; gap: 12px;
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: none;
+    border: none;
+    color: #ef4444;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background var(--transition);
+    text-align: left;
+  }
+  .sidebar-logout-btn:hover { background: #fff0f0; }
+  .sidebar-logout-btn i { font-size: 16px; width: 18px; text-align: center; }
+
+  /* =====================================================
+     MAIN CONTENT
+  ===================================================== */
+  #main {
+    flex: 1;
+    min-width: 0;
+    padding: 28px 24px;
+    transition: all var(--transition);
+  }
+
+  /* =====================================================
+     CARDS / COMPONENTS - dark mode
+  ===================================================== */
+  [data-theme="dark"] .card,
+  [data-theme="dark"] .bg-white { background: var(--surface) !important; color: var(--text) !important; border-color: var(--border) !important; }
+  [data-theme="dark"] .card h1,[data-theme="dark"] .card h2,[data-theme="dark"] .card h3,[data-theme="dark"] .card h4 { color: var(--text) !important; }
+  [data-theme="dark"] .card p { color: var(--text-muted) !important; }
+  [data-theme="dark"] h1,[data-theme="dark"] h2,[data-theme="dark"] h3,[data-theme="dark"] h4 { color: var(--text) !important; }
+  [data-theme="dark"] p, [data-theme="dark"] span { color: var(--text-muted); }
+  [data-theme="dark"] .text-muted { color: var(--text-muted) !important; }
+  [data-theme="dark"] .form-control, [data-theme="dark"] input, [data-theme="dark"] select, [data-theme="dark"] textarea {
+    background: var(--surface2) !important;
+    color: var(--text) !important;
+    border-color: var(--border) !important;
+  }
+  [data-theme="dark"] .table { color: var(--text) !important; }
+  [data-theme="dark"] .table td, [data-theme="dark"] .table th { border-color: var(--border) !important; }
+
+  /* =====================================================
+     COMPACT FOOTER
+  ===================================================== */
+  footer.site-footer {
+    background: var(--footer-bg);
+    color: var(--footer-text);
+    padding: 20px 30px;
+    margin-top: auto;
+    border-top: 1px solid rgba(255,255,255,0.08);
+  }
+
+  .footer-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+
+  .footer-brand-name { font-size: 18px; font-weight: 800; color: white; display: flex; align-items: center; gap: 8px; }
+  .footer-tagline { font-size: 12px; color: #9ca3af; margin: 2px 0 0; }
+  .footer-contact-inline { display: flex; gap: 18px; font-size: 12px; color: #9ca3af; flex-wrap: wrap; }
+  .footer-contact-inline i { color: var(--primary); margin-right: 4px; }
+  .footer-social { display: flex; gap: 12px; font-size: 16px; }
+  .footer-social a { color: #9ca3af; transition: color var(--transition); }
+  .footer-social a:hover { color: white; }
+  .footer-bottom { font-size: 12px; color: #6b7280; }
+
+  /* =====================================================
+     TOAST MESSAGES
+  ===================================================== */
+  .toast-container-custom {
+    position: fixed; top: 80px; right: 20px;
+    z-index: 10000;
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .toast-msg {
+    background: var(--primary-gradient);
+    color: white;
+    padding: 12px 18px;
+    border-radius: 10px;
+    box-shadow: var(--shadow-md);
+    font-size: 14px;
+    font-weight: 500;
+    animation: toastIn 0.3s ease;
+  }
+  @keyframes toastIn { from { opacity:0; transform: translateX(20px); } to { opacity:1; transform: translateX(0); } }
+
+  /* =====================================================
+     CHAT WIDGET
+  ===================================================== */
+  #chatbot-btn {
+    position: fixed;
+    bottom: 28px; right: 28px;
+    width: 58px; height: 58px;
+    border-radius: 50%;
+    background: var(--primary-gradient);
+    display: flex; justify-content: center; align-items: center;
+    cursor: pointer;
+    box-shadow: 0 6px 20px rgba(78,99,255,0.4);
+    font-size: 24px; z-index: 9999; color: white;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  #chatbot-btn:hover { transform: scale(1.08); box-shadow: 0 8px 28px rgba(78,99,255,0.55); }
+
+  #chatbot-box {
+    position: fixed;
+    bottom: 100px; right: 28px;
+    width: 360px;
+    max-width: calc(100vw - 40px);
+    height: 520px;
+    max-height: calc(100vh - 130px);
+    background: var(--surface);
+    border-radius: 16px;
+    box-shadow: var(--shadow-lg);
+    overflow: hidden;
+    display: none;
+    flex-direction: column;
+    z-index: 9999;
+    border: 1px solid var(--border);
+  }
+  #chat-header { background: var(--primary-gradient); color: #fff; padding: 14px 16px; font-weight: 700; display: flex; justify-content: space-between; align-items: center; font-size: 15px; }
+  #chat-body { padding: 12px; overflow-y: auto; flex: 1; display: flex; flex-direction: column; gap: 8px; background: var(--bg); }
+  .bot-msg, .user-msg { max-width: 85%; padding: 10px 12px; border-radius: 12px; line-height: 1.4; word-wrap: break-word; font-size: 13px; }
+  .bot-msg { background: var(--surface); align-self: flex-start; color: var(--text); border: 1px solid var(--border); }
+  .user-msg { background: var(--primary-gradient); color: #fff; align-self: flex-end; }
+  #chat-input-area { display: flex; gap: 8px; padding: 12px; border-top: 1px solid var(--border); background: var(--surface); }
+  #chat-input { flex: 1; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface2); color: var(--text); font-size: 13px; outline: none; }
+  #chat-input:focus { border-color: var(--primary); }
+  #chat-send { background: var(--primary); color: #fff; border: none; padding: 10px 16px; border-radius: 10px; cursor: pointer; font-size: 13px; font-weight: 600; transition: background var(--transition); }
+  #chat-send:hover { background: var(--primary-dark); }
+
+  /* =====================================================
+     SIDEBAR OVERLAY (mobile)
+  ===================================================== */
+  .sidebar-overlay {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.5);
+    backdrop-filter: blur(2px);
+    z-index: 1090;
+  }
+  .sidebar-overlay.show { display: block; }
+
+  /* =====================================================
+     RESPONSIVE BREAKPOINTS
+  ===================================================== */
+  @media (max-width: 1024px) {
+    #sidebar {
+      position: fixed;
+      top: 0; left: 0;
+      height: 100vh;
+      z-index: 1095;
+      transform: translateX(-100%);
+    }
+    #sidebar.show {
+      transform: translateX(0);
+      box-shadow: var(--shadow-lg);
+    }
+    #main { padding: 20px 16px; }
+    .nav-left { min-width: auto; border-right: none; }
+    .nav-search-wrapper { display: none; }
+    .user-name, .user-role, .user-info { display: none; }
+    .user-avatar-btn { padding: 5px; }
+    .user-avatar-btn .caret { display: none; }
+  }
+
+  @media (max-width: 640px) {
+    #topNavbar { padding: 0 12px 0 0; }
+    .nav-left { padding: 0 12px; gap: 10px; }
+    .brand-link { font-size: 18px; }
+    #main { padding: 16px 12px; }
+    footer.site-footer { padding: 32px 20px 18px; }
+    .footer-inner { grid-template-columns: 1fr 1fr; gap: 22px; }
+    #themeToggle .theme-label { display: none; }
+    #themeToggle { padding: 6px 10px; }
+    #chatbot-box { right: 10px; width: calc(100vw - 20px); }
+    #chatbot-btn { right: 16px; bottom: 16px; width: 52px; height: 52px; font-size: 20px; }
+  }
+
+  @media (max-width: 480px) {
+    .footer-inner { grid-template-columns: 1fr; }
+    .nav-divider { display: none; }
+  }
+  </style>
+</head>
+<body>
+
+<!-- =====================================================
+     TOP NAVBAR
+===================================================== -->
+<nav id="topNavbar">
+  <div class="nav-left">
+    <button id="sidebarToggleBtn" aria-label="Toggle sidebar" title="Toggle Sidebar">
+      <i class="fa-solid fa-bars" id="toggleIcon"></i>
+    </button>
+    <a href="{% url 'home' %}" class="brand-link">
+      <i class="fa-solid fa-hotel brand-icon"></i>
+      StayEasy
+    </a>
+  </div>
+
+  <div class="nav-center">
+    <form class="nav-search-wrapper" method="GET" action="{% url 'home' %}">
+      <i class="fa-solid fa-magnifying-glass search-icon-left"></i>
+      <input type="text" name="city" placeholder="Search hotels, cities..." value="{{ request.GET.city|default:'' }}">
+      <button type="submit" class="search-btn-inside" title="Search">
+        <i class="fa-solid fa-arrow-right"></i>
+      </button>
+    </form>
+  </div>
+
+  <div class="nav-right">
+    <!-- Currency Switcher -->
+    <form action="{% url 'set_currency' %}" method="POST" style="margin:0; display:inline-block;" id="currencyForm">
+      {% csrf_token %}
+      <input type="hidden" name="next" value="{{ request.path }}">
+      <select name="currency" onchange="this.form.submit()" class="currency-select-nav" aria-label="Select Currency" style="background:var(--surface2); color:var(--text); border:1px solid var(--border); border-radius:10px; padding:6px 10px; font-size:13px; font-weight:700; cursor:pointer; outline:none;">
+        <option value="INR" {% if request.session.currency == 'INR' or not request.session.currency %}selected{% endif %}>₹ INR</option>
+        <option value="USD" {% if request.session.currency == 'USD' %}selected{% endif %}>$ USD</option>
+        <option value="EUR" {% if request.session.currency == 'EUR' %}selected{% endif %}>€ EUR</option>
+      </select>
+    </form>
+
+    <div class="nav-divider"></div>
+
+    <!-- Theme Toggle -->
+    <button id="themeToggle" aria-label="Toggle theme" title="Toggle Dark/Light Mode">
+      <i class="fa-solid fa-moon" id="themeIcon"></i>
+      <span class="theme-label" id="themeLabel">Dark</span>
+    </button>
+
+    <div class="nav-divider"></div>
+
+    <!-- Notifications -->
+    <button class="nav-icon-btn" title="Notifications">
+      <i class="fa-regular fa-bell"></i>
+      <span class="badge-dot"></span>
+    </button>
+
+    <div class="nav-divider"></div>
+
+    <!-- User Dropdown -->
+    <div class="user-dropdown" id="userDropdown">
+      <button class="user-avatar-btn" id="userAvatarBtn" aria-label="User menu">
+        <div class="user-avatar">
+          {% if user.userprofile.profile_image %}
+            <img src="{{ user.userprofile.profile_image.url }}" alt="{{ user.username }}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">
+          {% else %}
+            {{ user.username|first|upper }}
+          {% endif %}
+        </div>
+        <div class="user-info">
+          <span class="user-name">{{ user.username }}</span>
+          <span class="user-role">{% if user.is_staff %}Admin{% else %}Member{% endif %}</span>
+        </div>
+        <i class="fa-solid fa-chevron-down caret"></i>
+      </button>
+
+      <div class="user-dropdown-menu" id="userDropdownMenu">
+        <div class="dropdown-header">
+          <div class="d-name">{{ user.get_full_name|default:user.username }}</div>
+          <div class="d-email" style="word-break:break-all; overflow:hidden; text-overflow:ellipsis; max-width:180px;">{{ user.email }}</div>
+        </div>
+
+        <a href="{% url 'dashboard' %}" class="dropdown-item-custom">
+          <i class="fa-solid fa-chart-line"></i>
+          Dashboard
+        </a>
+        <a href="{% url 'my_bookings' %}" class="dropdown-item-custom">
+          <i class="fa-solid fa-calendar-check"></i>
+          My Bookings
+        </a>
+        <a href="{% url 'upload_profile' %}" class="dropdown-item-custom">
+          <i class="fa-solid fa-user-circle"></i>
+          Edit Profile
+        </a>
+        <a href="{% url 'password_change' %}" class="dropdown-item-custom">
+          <i class="fa-solid fa-key"></i>
+          Change Password
+        </a>
+
+        {% if user.is_staff %}
+        <div class="dropdown-divider-custom"></div>
+        <a href="{% url 'admin_dashboard' %}" class="dropdown-item-custom">
+          <i class="fa-solid fa-shield-halved"></i>
+          Admin Panel
+        </a>
+        {% endif %}
+
+        <div class="dropdown-divider-custom"></div>
+        <a href="{% url 'logout' %}" class="dropdown-item-custom danger">
+          <i class="fa-solid fa-right-from-bracket"></i>
+          Logout
+        </a>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- Sidebar Overlay (mobile) -->
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<!-- =====================================================
+     TOAST MESSAGES
+===================================================== -->
+{% if messages %}
+<div class="toast-container-custom">
+  {% for message in messages %}
+    <div class="toast-msg">
+      {% if message.tags == 'success' %}✅{% elif message.tags == 'danger' %}❌{% elif message.tags == 'warning' %}⚠️{% else %}ℹ️{% endif %}
+      {{ message }}
+    </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<!-- =====================================================
+     PAGE WRAPPER: SIDEBAR + MAIN
+===================================================== -->
+<div class="page-wrapper">
+
+  <!-- SIDEBAR -->
+  <aside id="sidebar">
+    <div class="sidebar-user">
+      <div class="sidebar-user-avatar">
+        {% if user.userprofile.profile_image %}
+          <img src="{{ user.userprofile.profile_image.url }}" alt="{{ user.username }}" style="width:100%;height:100%;object-fit:cover;border-radius:10px;">
+        {% else %}
+          {{ user.username|first|upper }}
+        {% endif %}
+      </div>
+      <div>
+        <div class="sidebar-user-name" style="word-break:break-all; max-width:140px; overflow:hidden; text-overflow:ellipsis;">{{ user.username }}</div>
+        <div class="sidebar-user-role">{% if user.is_staff %}Administrator{% else %}Member{% endif %}</div>
+      </div>
+    </div>
+
+    <div class="sidebar-section-title">Navigation</div>
+
+    <a href="{% url 'home' %}" class="sidebar-link {% if request.path == '/' %}active{% endif %}">
+      <i class="fa-solid fa-house"></i>
+      <span class="sidebar-label">Explore Hotels</span>
+    </a>
+
+    <a href="{% url 'dashboard' %}" class="sidebar-link {% if request.path == '/dashboard/' %}active{% endif %}">
+      <i class="fa-solid fa-chart-line"></i>
+      <span class="sidebar-label">Overview</span>
+    </a>
+
+    <a href="{% url 'my_bookings' %}" class="sidebar-link {% if '/my-bookings' in request.path %}active{% endif %}">
+      <i class="fa-solid fa-calendar-check"></i>
+      <span class="sidebar-label">{% trans "My Bookings" %}</span>
+    </a>
+
+    <a href="{% url 'upload_profile' %}" class="sidebar-link {% if '/upload-profile' in request.path %}active{% endif %}">
+      <i class="fa-solid fa-user-circle"></i>
+      <span class="sidebar-label">My Profile</span>
+    </a>
+
+    <a href="{% url 'password_change' %}" class="sidebar-link">
+      <i class="fa-solid fa-key"></i>
+      <span class="sidebar-label">Change Password</span>
+    </a>
+
+    {% if user.is_staff %}
+    <div class="sidebar-section-title">Admin</div>
+    <a href="{% url 'admin_dashboard' %}" class="sidebar-link {% if request.path == '/admin-dashboard/' %}active{% endif %}">
+      <i class="fa-solid fa-shield-halved"></i>
+      <span class="sidebar-label">Admin Panel</span>
+    </a>
+    <a href="{% url 'admin_calendar' %}" class="sidebar-link {% if 'calendar' in request.path %}active{% endif %}">
+      <i class="fa-solid fa-calendar-days"></i>
+      <span class="sidebar-label">Room Calendar</span>
+    </a>
+    <a href="{% url 'admin_hotels' %}" class="sidebar-link">
+      <i class="fa-solid fa-hotel"></i>
+      <span class="sidebar-label">Manage Hotels</span>
+    </a>
+    {% endif %}
+
+    <div class="sidebar-logout">
+      <a href="{% url 'logout' %}" class="sidebar-logout-btn" style="text-decoration:none;">
+        <i class="fa-solid fa-right-from-bracket"></i>
+        <span class="sidebar-label">Logout</span>
+      </a>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main id="main">
+    {% block content %}{% endblock %}
+  </main>
+
+</div><!-- END page-wrapper -->
+
+<!-- =====================================================
+     COMPACT FOOTER
+===================================================== -->
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div>
+      <div class="footer-brand-name"><i class="fa-solid fa-hotel" style="color:var(--primary);"></i> StayEasy</div>
+      <p class="footer-tagline">Your comfort, our priority. Guaranteed best hotel rates worldwide.</p>
+    </div>
+
+    <div class="footer-contact-inline">
+      <span><i class="fa-solid fa-phone"></i> +91 98765 43210</span>
+      <span><i class="fa-solid fa-envelope"></i> support@stayeasy.com</span>
+      <span><i class="fa-solid fa-location-dot"></i> Mumbai, India</span>
+    </div>
+
+    <div style="display:flex; flex-direction:column; align-items:flex-end; gap:6px;">
+      <div class="footer-social">
+        <a href="#" aria-label="Facebook"><i class="fa-brands fa-facebook"></i></a>
+        <a href="#" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a>
+        <a href="#" aria-label="Twitter"><i class="fa-brands fa-twitter"></i></a>
+        <a href="#" aria-label="YouTube"><i class="fa-brands fa-youtube"></i></a>
+      </div>
+      <div class="footer-bottom">© 2026 StayEasy. All rights reserved.</div>
+    </div>
+  </div>
+</footer>
+
+<!-- =====================================================
+     CHATBOT BUTTON + BOX
+===================================================== -->
+<div id="chatbot-btn" title="Ask StayEasy">💬</div>
+
+<div id="chatbot-box" role="dialog" aria-label="StayEasy Assistant">
+  <div id="chat-header">
+    <div>💬 StayEasy Assistant</div>
+    <div style="display:flex;gap:6px;">
+      <button id="chat-clear" class="btn btn-sm btn-light py-0 px-2" style="font-size:12px;">Clear</button>
+      <button id="chat-close" style="background:transparent;border:0;color:#fff;font-size:18px;cursor:pointer;">✕</button>
+    </div>
+  </div>
+  <div id="chat-body" aria-live="polite"></div>
+  <div id="chat-input-area">
+    <input id="chat-input" type="text" placeholder="Ask about hotels, bookings..." aria-label="Type a message" />
+    <button id="chat-send" aria-label="Send">Send</button>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+(function(){
+  'use strict';
+
+  /* ---------- THEME ---------- */
+  const html = document.documentElement;
+  const themeBtn = document.getElementById('themeToggle');
+  const themeIcon = document.getElementById('themeIcon');
+  const themeLabel = document.getElementById('themeLabel');
+
+  function applyTheme(dark) {
+    html.setAttribute('data-theme', dark ? 'dark' : 'light');
+    themeIcon.className = dark ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
+    if(themeLabel) themeLabel.textContent = dark ? 'Light' : 'Dark';
+    localStorage.setItem('stayeasy-theme', dark ? 'dark' : 'light');
+  }
+
+  // Load saved theme on page load
+  const savedTheme = localStorage.getItem('stayeasy-theme');
+  applyTheme(savedTheme === 'dark');
+
+  if(themeBtn) {
+    themeBtn.addEventListener('click', () => {
+      applyTheme(html.getAttribute('data-theme') !== 'dark');
+    });
+  }
+
+  /* ---------- SIDEBAR ---------- */
+  const sidebar = document.getElementById('sidebar');
+  const toggleBtn = document.getElementById('sidebarToggleBtn');
+  const overlay = document.getElementById('sidebarOverlay');
+  const toggleIcon = document.getElementById('toggleIcon');
+  let sidebarCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
+
+  function isMobile() { return window.innerWidth <= 1024; }
+
+  function setSidebarState(open) {
+    if(isMobile()) {
+      sidebar.classList.toggle('show', open);
+      overlay.classList.toggle('show', open);
+      toggleIcon.className = open ? 'fa-solid fa-xmark' : 'fa-solid fa-bars';
+    } else {
+      sidebarCollapsed = !open;
+      sidebar.classList.toggle('collapsed', sidebarCollapsed);
+      toggleIcon.className = sidebarCollapsed ? 'fa-solid fa-bars' : 'fa-solid fa-bars';
+      localStorage.setItem('sidebarCollapsed', sidebarCollapsed);
+    }
+  }
+
+  // Init desktop state
+  if(!isMobile() && sidebarCollapsed) {
+    sidebar.classList.add('collapsed');
+  }
+
+  if(toggleBtn) {
+    toggleBtn.addEventListener('click', () => {
+      if(isMobile()) {
+        setSidebarState(!sidebar.classList.contains('show'));
+      } else {
+        setSidebarState(sidebar.classList.contains('collapsed'));
+      }
+    });
+  }
+
+  if(overlay) {
+    overlay.addEventListener('click', () => setSidebarState(false));
+  }
+
+  // Close sidebar on nav link click (mobile)
+  if(sidebar) {
+    sidebar.querySelectorAll('a, button').forEach(el => {
+      el.addEventListener('click', () => {
+        if(isMobile()) setSidebarState(false);
+      });
+    });
+  }
+
+  window.addEventListener('resize', () => {
+    if(!isMobile()) {
+      sidebar.classList.remove('show');
+      overlay.classList.remove('show');
+    }
+  });
+
+  /* ---------- USER DROPDOWN ---------- */
+  const userDropdown = document.getElementById('userDropdown');
+  const userAvatarBtn = document.getElementById('userAvatarBtn');
+
+  if(userAvatarBtn && userDropdown) {
+    userAvatarBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      userDropdown.classList.toggle('open');
+    });
+    document.addEventListener('click', () => userDropdown.classList.remove('open'));
+  }
+
+  /* ---------- AUTO-DISMISS TOASTS ---------- */
+  const toasts = document.querySelectorAll('.toast-msg');
+  toasts.forEach((t, i) => {
+    setTimeout(() => {
+      t.style.opacity = '0';
+      t.style.transform = 'translateX(20px)';
+      t.style.transition = '0.4s ease';
+      setTimeout(() => t.remove(), 400);
+    }, 3500 + i * 400);
+  });
+
+  /* ---------- CHATBOT ---------- */
+  const chatBtn = document.getElementById('chatbot-btn');
+  const chatBox = document.getElementById('chatbot-box');
+  const chatClose = document.getElementById('chat-close');
+  const chatClear = document.getElementById('chat-clear');
+  const chatBody = document.getElementById('chat-body');
+  const chatInput = document.getElementById('chat-input');
+  const chatSend = document.getElementById('chat-send');
+
+  function chatOpen() { chatBox.style.display = 'flex'; chatInput.focus(); }
+  function chatClose2() { chatBox.style.display = 'none'; }
+  function addMsg(cls, text) {
+    const d = document.createElement('div');
+    d.className = cls; d.textContent = text;
+    chatBody.appendChild(d);
+    chatBody.scrollTop = chatBody.scrollHeight;
+  }
+  function sendChat() {
+    const text = chatInput.value.trim(); if(!text) return;
+    addMsg('user-msg', text); chatInput.value = '';
+    const typing = document.createElement('div'); typing.className = 'bot-msg'; typing.textContent = '...';
+    chatBody.appendChild(typing); chatBody.scrollTop = chatBody.scrollHeight;
+    fetch('/chatbot/', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({message:text}) })
+      .then(r => r.json()).then(d => { typing.remove(); addMsg('bot-msg', d.reply || 'No response'); })
+      .catch(() => { typing.remove(); addMsg('bot-msg', 'Assistant unavailable. Try later.'); });
+  }
+  if(chatBtn) chatBtn.addEventListener('click', chatOpen);
+  if(chatClose) chatClose.addEventListener('click', chatClose2);
+  if(chatClear) chatClear.addEventListener('click', () => chatBody.innerHTML = '');
+  if(chatSend) chatSend.addEventListener('click', sendChat);
+  if(chatInput) chatInput.addEventListener('keydown', e => { if(e.key === 'Enter') sendChat(); });
+  addMsg('bot-msg', 'Hi! I\'m the StayEasy assistant. Ask me about hotels, bookings or policies 🏨');
+
+})();
+</script>
+
+</body>
+</html>

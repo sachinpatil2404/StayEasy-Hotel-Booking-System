@@ -1,0 +1,5 @@
+msgid "My Bookings"
+msgstr "मेरी बुकिंग्स"
+
+msgid "Logout"
+msgstr "लॉगआउट"

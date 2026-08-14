@@ -1,0 +1,14 @@
+{% extends "bookings/base_dashboard.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="alert alert-success p-4">
+        <h2>Booking Successful</h2>
+        <p>Your payment and booking were completed successfully.</p>
+
+        <a href="{% url 'my_bookings' %}" class="btn btn-primary mt-2">
+            View My Bookings
+        </a>
+    </div>
+</div>
+{% endblock %}

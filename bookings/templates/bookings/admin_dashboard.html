@@ -1,0 +1,520 @@
+{% extends "bookings/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Admin Real-Time Analytics | StayEasy{% endblock %}
+
+{% block extra_styles %}
+<style>
+.dashboard-header-flex {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+/* TIME FILTER TOGGLE PILLS */
+.filter-pills-group {
+  display: inline-flex;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 4px;
+}
+.filter-pill-btn {
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  text-decoration: none !important;
+  transition: all var(--transition);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.filter-pill-btn.active {
+  background: var(--primary-gradient);
+  color: white !important;
+  box-shadow: var(--shadow-sm);
+}
+
+/* STAT CARDS GRID (6 METRIC CARDS) */
+.admin-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+.stat-card {
+  background: var(--surface);
+  border-radius: 16px;
+  padding: 20px 16px;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  transition: box-shadow var(--transition), transform var(--transition);
+  position: relative;
+  overflow: hidden;
+}
+.stat-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-md);
+}
+.stat-card::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 4px;
+  border-radius: 4px 0 0 4px;
+}
+.stat-card.emerald::before { background: #10b981; }
+.stat-card.blue::before    { background: #3b82f6; }
+.stat-card.red::before     { background: #ef4444; }
+.stat-card.purple::before  { background: #8b5cf6; }
+.stat-card.orange::before  { background: #f59e0b; }
+.stat-card.indigo::before  { background: #6366f1; }
+
+.stat-icon {
+  width: 44px; height: 44px;
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+.stat-card.emerald .stat-icon { background: rgba(16,185,129,0.12); color: #10b981; }
+.stat-card.blue    .stat-icon { background: rgba(59,130,246,0.12); color: #3b82f6; }
+.stat-card.red     .stat-icon { background: rgba(239,68,68,0.12); color: #ef4444; }
+.stat-card.purple  .stat-icon { background: rgba(139,92,246,0.12); color: #8b5cf6; }
+.stat-card.orange  .stat-icon { background: rgba(245,158,11,0.12); color: #f59e0b; }
+.stat-card.indigo  .stat-icon { background: rgba(99,102,241,0.12); color: #6366f1; }
+
+.stat-label { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 4px; }
+.stat-number { font-size: 24px; font-weight: 800; color: var(--text); line-height: 1; }
+
+/* CHARTS GRID */
+.charts-three-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 22px;
+  margin-bottom: 28px;
+}
+
+.chart-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 22px;
+  box-shadow: var(--shadow-sm);
+}
+
+.chart-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18px;
+}
+
+.chart-card-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.chart-canvas-container {
+  position: relative;
+  width: 100%;
+  height: 280px;
+}
+
+/* SECTION CARDS & TABLES */
+.section-card {
+  background: var(--surface);
+  border-radius: 18px;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+  padding: 24px;
+  margin-bottom: 24px;
+}
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18px;
+}
+.section-title { font-size: 18px; font-weight: 700; color: var(--text); }
+
+.admin-table { width: 100%; border-collapse: collapse; }
+.admin-table th {
+  background: var(--surface2);
+  padding: 12px 14px;
+  text-align: left;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border);
+}
+.admin-table td {
+  padding: 14px;
+  font-size: 14px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+}
+.admin-table tbody tr:last-child td { border-bottom: none; }
+.admin-table tbody tr:hover { background: var(--surface2); }
+
+.status-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 700;
+}
+.status-badge.confirmed { background: rgba(16,185,129,0.12); color: #10b981; border: 1px solid rgba(16,185,129,0.2); }
+.status-badge.cancelled { background: rgba(239,68,68,0.12); color: #ef4444; border: 1px solid rgba(239,68,68,0.2); }
+
+/* QUICK ACTIONS */
+.quick-actions { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 28px; }
+.quick-btn {
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 18px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all var(--transition);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+}
+.quick-btn:hover { border-color: var(--primary); color: var(--primary); background: rgba(78,99,255,0.05); }
+.quick-btn.primary { background: var(--primary-gradient); color: white; border-color: transparent; }
+.quick-btn.primary:hover { opacity: 0.9; color: white; }
+
+/* RESPONSIVE BREAKPOINTS */
+@media (max-width: 1400px) {
+  .admin-stats-grid { grid-template-columns: repeat(3, 1fr); }
+}
+@media (max-width: 991px) {
+  .charts-three-grid { grid-template-columns: 1fr; }
+  .admin-stats-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 500px) {
+  .admin-stats-grid { grid-template-columns: 1fr; }
+}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block content %}
+
+<div class="dashboard-header-flex">
+  <div>
+    <h1 style="font-size:26px; font-weight:800; color:var(--text); margin-bottom:4px;">
+      <i class="fa-solid fa-chart-pie" style="color:var(--primary);margin-right:8px;"></i>Admin Analytics & Revenue Visualization
+    </h1>
+    <p style="color:var(--text-muted); font-size:14px; margin:0;">
+      Real-time sales, total bookings, cancellation tracking & revenue metrics for <strong>{{ user.username }}</strong>.
+    </p>
+  </div>
+
+  <!-- MONTH-WISE VS YEAR-WISE TIME FILTER -->
+  <div class="filter-pills-group">
+    <a href="?filter=month" class="filter-pill-btn {% if time_filter != 'year' %}active{% endif %}">
+      <i class="fa-solid fa-calendar-days"></i> Month-wise
+    </a>
+    <a href="?filter=year" class="filter-pill-btn {% if time_filter == 'year' %}active{% endif %}">
+      <i class="fa-solid fa-calendar"></i> Year-wise
+    </a>
+  </div>
+</div>
+
+<!-- 6 STAT METRIC CARDS -->
+<div class="admin-stats-grid">
+
+  <div class="stat-card emerald">
+    <div class="stat-icon"><i class="fa-solid fa-indian-rupee-sign"></i></div>
+    <div class="stat-body">
+      <div class="stat-label">Total Revenue</div>
+      <div class="stat-number">₹{{ total_revenue }}</div>
+    </div>
+  </div>
+
+  <div class="stat-card blue">
+    <div class="stat-icon"><i class="fa-solid fa-circle-check"></i></div>
+    <div class="stat-body">
+      <div class="stat-label">Confirmed</div>
+      <div class="stat-number">{{ confirmed_count }}</div>
+    </div>
+  </div>
+
+  <div class="stat-card red">
+    <div class="stat-icon"><i class="fa-solid fa-ban"></i></div>
+    <div class="stat-body">
+      <div class="stat-label">Cancelled</div>
+      <div class="stat-number">{{ cancelled_count }}</div>
+    </div>
+  </div>
+
+  <div class="stat-card orange">
+    <div class="stat-icon"><i class="fa-solid fa-calendar-check"></i></div>
+    <div class="stat-body">
+      <div class="stat-label">Total Bookings</div>
+      <div class="stat-number">{{ total_bookings }}</div>
+    </div>
+  </div>
+
+  <div class="stat-card purple">
+    <div class="stat-icon"><i class="fa-solid fa-hotel"></i></div>
+    <div class="stat-body">
+      <div class="stat-label">My Hotels</div>
+      <div class="stat-number">{{ total_hotels }}</div>
+    </div>
+  </div>
+
+  <div class="stat-card indigo">
+    <div class="stat-icon"><i class="fa-solid fa-users"></i></div>
+    <div class="stat-body">
+      <div class="stat-label">Guests Served</div>
+      <div class="stat-number">{{ total_users }}</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- DATA VISUALIZATION CHARTS -->
+<div class="charts-three-grid">
+
+  <!-- 1. TREND CHART (MONTH-WISE OR YEAR-WISE) -->
+  <div class="chart-card">
+    <div class="chart-card-header">
+      <h3 class="chart-card-title">
+        <i class="fa-solid fa-chart-line" style="color:#3b82f6;"></i>
+        {% if time_filter == 'year' %}Annual Revenue & Bookings Trend (Year-wise){% else %}Monthly Revenue & Bookings Trend (Month-wise){% endif %}
+      </h3>
+      <span style="font-size:12px; color:var(--text-muted); font-weight:600; background:var(--surface2); padding:4px 10px; border-radius:6px;">
+        {% if time_filter == 'year' %}Yearly Overview{% else %}Last 6 Months{% endif %}
+      </span>
+    </div>
+    <div class="chart-canvas-container">
+      <canvas id="trendChart"></canvas>
+    </div>
+  </div>
+
+  <!-- 2. BOOKING STATUS RATIO (CONFIRMED VS CANCELLED) -->
+  <div class="chart-card">
+    <div class="chart-card-header">
+      <h3 class="chart-card-title">
+        <i class="fa-solid fa-chart-pie" style="color:#10b981;"></i> Booking Status Ratio
+      </h3>
+    </div>
+    <div class="chart-canvas-container">
+      <canvas id="statusChart"></canvas>
+    </div>
+  </div>
+
+</div>
+
+<!-- REVENUE BY ROOM TYPE CHART -->
+<div class="chart-card" style="margin-bottom:28px;">
+  <div class="chart-card-header">
+    <h3 class="chart-card-title">
+      <i class="fa-solid fa-bed" style="color:#8b5cf6;"></i> Revenue Breakdown by Room Type (Single, Double, Deluxe, Suite)
+    </h3>
+  </div>
+  <div class="chart-canvas-container" style="height:260px;">
+    <canvas id="roomTypeBarChart"></canvas>
+  </div>
+</div>
+
+<!-- QUICK ACTIONS -->
+<div class="quick-actions">
+  <a href="{% url 'admin_add_hotel' %}" class="quick-btn primary"><i class="fa-solid fa-plus"></i> Add Hotel</a>
+  <a href="{% url 'admin_add_room' %}" class="quick-btn primary"><i class="fa-solid fa-plus"></i> Add Room</a>
+  <a href="{% url 'admin_hotels' %}" class="quick-btn"><i class="fa-solid fa-hotel"></i> Manage Hotels</a>
+  <a href="{% url 'admin_rooms' %}" class="quick-btn"><i class="fa-solid fa-bed"></i> Manage Rooms</a>
+</div>
+
+<!-- RECENT CUSTOMER BOOKINGS TABLE -->
+<div class="section-card">
+  <div class="section-header">
+    <span class="section-title"><i class="fa-solid fa-clock-rotate-left" style="color:var(--primary);margin-right:8px;"></i>Recent Customer Bookings</span>
+  </div>
+  <div class="table-responsive">
+    <table class="admin-table">
+      <thead>
+        <tr>
+          <th>#ID</th>
+          <th>Customer</th>
+          <th>Hotel & Room</th>
+          <th>Check In</th>
+          <th>Check Out</th>
+          <th>Total Price</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for booking in recent_bookings %}
+        <tr>
+          <td style="font-weight:700; color:var(--primary);">#{{ booking.id }}</td>
+          <td style="font-weight:600;">{{ booking.user.username }}</td>
+          <td>{{ booking.room.hotel.name }} — Room {{ booking.room.room_number }} ({{ booking.room.room_type }})</td>
+          <td>{{ booking.check_in }}</td>
+          <td>{{ booking.check_out }}</td>
+          <td style="font-weight:700; color:#10b981;">₹{{ booking.total_price }}</td>
+          <td>
+            {% if booking.status == 'confirmed' %}
+              <span class="status-badge confirmed">✓ Confirmed</span>
+            {% else %}
+              <span class="status-badge cancelled">✕ Cancelled</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="7" style="text-align:center;color:var(--text-muted);padding:30px;">No bookings recorded yet.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- CHART INITIALIZATION SCRIPT -->
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  const trendLabels = {{ trend_labels_json|safe }};
+  const trendRevenue = {{ trend_revenue_json|safe }};
+  const trendBookings = {{ trend_bookings_json|safe }};
+  const statusLabels = {{ status_labels_json|safe }};
+  const statusCounts = {{ status_counts_json|safe }};
+  const roomTypes = {{ room_types_json|safe }};
+  const roomTypeRevenue = {{ room_type_revenue_json|safe }};
+
+  // 1. DYNAMIC TREND CHART (MONTH-WISE / YEAR-WISE)
+  const ctxTrend = document.getElementById('trendChart').getContext('2d');
+  const revGrad = ctxTrend.createLinearGradient(0, 0, 0, 240);
+  revGrad.addColorStop(0, 'rgba(59, 130, 246, 0.35)');
+  revGrad.addColorStop(1, 'rgba(59, 130, 246, 0.0)');
+
+  new Chart(ctxTrend, {
+    type: 'line',
+    data: {
+      labels: trendLabels,
+      datasets: [
+        {
+          label: 'Revenue (₹)',
+          data: trendRevenue,
+          borderColor: '#3b82f6',
+          backgroundColor: revGrad,
+          borderWidth: 3,
+          fill: true,
+          tension: 0.35,
+          pointRadius: 5,
+          yAxisID: 'yRev'
+        },
+        {
+          label: 'Bookings Count',
+          data: trendBookings,
+          borderColor: '#10b981',
+          backgroundColor: 'rgba(16, 185, 129, 0.2)',
+          borderWidth: 2,
+          type: 'bar',
+          borderRadius: 6,
+          yAxisID: 'yBks'
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { labels: { color: '#94a3b8', font: { weight: '600' } } },
+        tooltip: { padding: 12, cornerRadius: 8 }
+      },
+      scales: {
+        x: { grid: { display: false }, ticks: { color: '#94a3b8' } },
+        yRev: {
+          type: 'linear',
+          position: 'left',
+          ticks: { color: '#3b82f6', callback: (v) => '₹' + v },
+          grid: { color: 'rgba(148, 163, 184, 0.1)' }
+        },
+        yBks: {
+          type: 'linear',
+          position: 'right',
+          ticks: { color: '#10b981', stepSize: 1 },
+          grid: { display: false }
+        }
+      }
+    }
+  });
+
+  // 2. BOOKING STATUS RATIO (CONFIRMED VS CANCELLED)
+  const ctxStatus = document.getElementById('statusChart').getContext('2d');
+  new Chart(ctxStatus, {
+    type: 'doughnut',
+    data: {
+      labels: statusLabels,
+      datasets: [{
+        data: statusCounts,
+        backgroundColor: ['#10b981', '#ef4444'],
+        borderWidth: 0,
+        hoverOffset: 6
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'bottom', labels: { color: '#94a3b8', font: { weight: '600' } } }
+      },
+      cutout: '70%'
+    }
+  });
+
+  // 3. REVENUE BY ROOM TYPE (BAR CHART)
+  const ctxBar = document.getElementById('roomTypeBarChart').getContext('2d');
+  new Chart(ctxBar, {
+    type: 'bar',
+    data: {
+      labels: roomTypes,
+      datasets: [{
+        label: 'Revenue Generated (₹)',
+        data: roomTypeRevenue,
+        backgroundColor: ['#3b82f6', '#10b981', '#8b5cf6', '#f59e0b'],
+        borderRadius: 8
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: (item) => ' Revenue: ₹' + item.formattedValue } }
+      },
+      scales: {
+        x: { grid: { display: false }, ticks: { color: '#94a3b8' } },
+        y: { ticks: { color: '#94a3b8', callback: (v) => '₹' + v }, grid: { color: 'rgba(148, 163, 184, 0.1)' } }
+      }
+    }
+  });
+});
+</script>
+
+{% endblock %}
